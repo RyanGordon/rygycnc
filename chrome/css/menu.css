@@ -1,0 +1,24 @@
+.menu-wrapper {
+    width: 100%;
+    height: 30px;
+    position: relative;
+}
+
+ul {
+    margin: 0;
+    padding: 0;
+}
+ 
+ul.menu {
+    height: 30px;
+    float: left;
+}
+ 
+ul.menu li {
+    list-style: none;
+    float: left;
+    height: 30px;
+    display: block;
+    text-align: center;
+    line-height: 15px;
+}

@@ -7,10 +7,16 @@
 	"permissions": [
 		"hid"
 	],
+	"optional_permissions": [{
+		"usbDevices": [{
+			"vendorId": 1003,
+			"productId": 8527
+		}]
+	}],
 	"app": {
 		"background": {
 			"scripts": ["background.js"]
 		}
 	},
-	"icons": { "16": "calculator-16.png", "128": "calculator-128.png" }
+	"icons": { "16": "rygycnc-16.png", "128": "rygycnc-128.png" }
 }

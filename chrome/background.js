@@ -1,7 +1,7 @@
-chrome.app.runtime.onLaunched.addListener(function() {
-  chrome.app.window.create('window.html', {
-      'state': 'fullscreen'
-  });
+chrome.app.runtime.onLaunched.addListener(openMainWindow);
 
-  chrome.hid.getDevices({"vendorId": 0x03eb, "productId": 0x214f}, function(devices) { console.log(devices); });
-});
+var openMainWindow = (function() {
+	chrome.app.window.create('window.html', {
+		'state': 'normal'
+	});
+})();
