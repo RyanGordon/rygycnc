@@ -4,6 +4,8 @@ var PRODUCT_ID = 0x214F; // integer = 8527
 var HIDConnectionId = null;
 var HIDReady = false;
 
+var PACKET_SIZE = 64;
+
 chrome.runtime.onSuspend.addListener(disconnectDevice);
 
 window.onload = function() {
@@ -23,11 +25,14 @@ var sendTestDataToDevice = (function() {
 	sendData(data, function() {
 		console.log("Packet has been sent.");
 	});
-	
+
+	receiveData(function(data) {
+		console.log(data);
+	});
 });
 
 function sendData(data, callback) {
-	var dataBuffer = new ArrayBuffer(64);
+	var dataBuffer = new ArrayBuffer(PACKET_SIZE);
 	var dataArray = new Uint8Array(dataBuffer);
 	var dataLength = data.length;
 	for (var i=0; i< dataLength; i++) {
@@ -41,12 +46,15 @@ function sendData(data, callback) {
 }
 
 function readFromArrayBuffer(arrayBuffer) {
-	var dataArrayTest = new Uint8Array(arrayBuffer);
-	console.log(dataArrayTest);
+	return new Uint8Array(arrayBuffer);
 }
 
-function recieveData(size, dataCallback) {
-	chrome.hid.recieve(HIDConnectionId, size, dataCallback);
+function receiveData(dataCallback) {
+	console.log("Receiving data...");
+	chrome.hid.receive(HIDConnectionId, PACKET_SIZE, function(dataBuffer) {
+		console.log("Data received.");
+		dataCallback(new Uint8Array(dataBuffer));
+	});
 }
 
 function findHIDDevice() {
