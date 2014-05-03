@@ -50,14 +50,7 @@ function sendData(data, callback) {
 		data: dataBuffer
 	}
 
-	var isocInfo = {
-		transferInfo: transferInfo,
-		packets: 1,
-		packetLength: PACKET_SIZE
-	}
-
-	//chrome.usb.interruptTransfer(connectionHandle, transferInfo, callback);
-	chrome.usb.isochronousTransfer(connectionHandle, isocInfo, callback);
+	chrome.usb.interruptTransfer(connectionHandle, transferInfo, callback);
 }
 
 function readFromArrayBuffer(arrayBuffer) {
