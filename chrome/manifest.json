@@ -5,7 +5,7 @@
 	"description": "Interface for the RYGY CNC Controller",
 	"version": "0.1",
 	"permissions": [
-		"hid"
+		"usb"
 	],
 	"optional_permissions": [{
 		"usbDevices": [{

@@ -1,8 +1,8 @@
 var VENDOR_ID = 0x03EB; // integer = 1003
 var PRODUCT_ID = 0x214F; // integer = 8527
 
-var HIDConnectionId = null;
-var HIDReady = false;
+var connectionHandle = null;
+var deviceReady = false;
 
 var PACKET_SIZE = 64;
 
@@ -15,20 +15,22 @@ window.onload = function() {
 }
 
 var sendTestDataToDevice = (function() {
-	if (HIDReady !== true) {
+	if (deviceReady !== true) {
 		console.log("Device not connected. Please connect first.");
 		return 0;
 	}
 
 	console.log("Sending packet to device.");
 	var data = [0x81, 0x81, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02];
-	sendData(data, function() {
+	sendData(data, function(info) {
 		console.log("Packet has been sent.");
+		console.log(info);
 	});
 
-	receiveData(function(data) {
-		console.log(data);
-	});
+	//receiveData(function(data) {
+	//	console.log("Data received.");
+	//	console.log(data);
+	//});
 });
 
 function sendData(data, callback) {
@@ -42,7 +44,13 @@ function sendData(data, callback) {
 	console.log(dataArray);
 	console.log(readFromArrayBuffer(dataBuffer));
 
-	chrome.hid.send(HIDConnectionId, 0, dataBuffer, callback);
+	var transferInfo = {
+		direction: 'out',
+		endpoint: 1,
+		data: dataBuffer
+	}
+
+	chrome.usb.interruptTransfer(connectionHandle, transferInfo, callback);
 }
 
 function readFromArrayBuffer(arrayBuffer) {
@@ -51,39 +59,54 @@ function readFromArrayBuffer(arrayBuffer) {
 
 function receiveData(dataCallback) {
 	console.log("Receiving data...");
-	chrome.hid.receive(HIDConnectionId, PACKET_SIZE, function(dataBuffer) {
-		console.log("Data received.");
+
+	var transferInfo = {
+		direction: 'in',
+		endpoint: 2,
+		length: PACKET_SIZE
+	}
+
+	chrome.usb.interruptTransfer(connectionHandle, transferInfo, function(dataBuffer) {
 		dataCallback(new Uint8Array(dataBuffer));
 	});
 }
 
-function findHIDDevice() {
-	chrome.hid.getDevices({"vendorId": VENDOR_ID, "productId": PRODUCT_ID}, function(devices) {
+function findDevice() {
+	console.log("Finding devices");
+	chrome.usb.getDevices({"vendorId": VENDOR_ID, "productId": PRODUCT_ID}, function(devices) {
+		console.log("Device found");
 		console.log(devices);
 		if (devices.size === 0) {
 			console.log("No connected RYGY CNC devices were found");
 			document.getElementById('connect').text = 'Connect';
 		} else {
-			connectToHIDDevice(devices[0].deviceId);
+			connectToDevice(devices[0]);
 		}
 	});
 }
 
-function connectToHIDDevice(deviceId) {
-	chrome.hid.connect(deviceId, function(connection) {
-		HIDConnectionId = connection.connectionId;
-		HIDReady = true;
-		console.log("Device connected with connection id "+HIDConnectionId);
-		document.getElementById('connect').style.display = "none";
-		document.getElementById('connect').text = 'Connect';
+function connectToDevice(device) {
+	console.log ("Opening Device "+device.device);
+	chrome.usb.openDevice(device, function(connection) {
+		connectionHandle = connection;
 
-		document.getElementById('disconnect').style.display = "block";
+		console.log("Device opened with connection id "+connectionHandle.handle);
+		console.log("Claiming interface");
+		chrome.usb.claimInterface(connection, 0, function() {
+			console.log("Interface claimed.");
+			deviceReady = true;
+
+			document.getElementById('connect').style.display = "none";
+			document.getElementById('connect').text = 'Connect';
+
+			document.getElementById('disconnect').style.display = "block";
+		});
 	});
 }
 
 var connectDevice = (function() {
-	if (HIDConnectionId !== null) {
-		console.log("Already connected to device with connection id "+HIDConnectionId+". Disconnect first.");
+	if (connectionHandle !== null) {
+		console.log("Already connected to device with connection id "+connectionHandle.handle+". Disconnect first.");
 		return 0;
 	}
 
@@ -101,7 +124,7 @@ var connectDevice = (function() {
 var permissionsCallback = (function(result) {
 	if (result) {
 		console.log('App was granted the "usbDevices" permission.');
-		findHIDDevice();
+		findDevice();
 	} else {
 		document.getElementById('connect').text = 'Connect';
 		console.log('App was NOT granted the "usbDevices" permission.');
@@ -110,17 +133,17 @@ var permissionsCallback = (function(result) {
 
 var disconnectDevice = (function() {
 	document.getElementById('disconnect').text = 'Disconnecting';
-	if (HIDConnectionId !== null) {
-		chrome.hid.disconnect(HIDConnectionId, disconnectedCallback);
+	if (connectionHandle !== null) {
+		chrome.usb.closeDevice(connectionHandle, disconnectedCallback);
 	} else {
 		disconnectedCallback();
 	}
 });
 
 var disconnectedCallback = (function() {
-	console.log("Device with connection id "+HIDConnectionId+" is disconnected.");
-	HIDConnectionId = null;
-	HIDReady = false;
+	console.log("Device with connection id "+connectionHandle.handle+" is disconnected.");
+	connectionHandle = null;
+	deviceReady = false;
 
 	document.getElementById('disconnect').style.display = "none";
 	document.getElementById('disconnect').text = 'Disconnect';
