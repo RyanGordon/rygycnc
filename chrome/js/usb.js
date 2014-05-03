@@ -50,7 +50,14 @@ function sendData(data, callback) {
 		data: dataBuffer
 	}
 
-	chrome.usb.interruptTransfer(connectionHandle, transferInfo, callback);
+	var isocInfo = {
+		transferInfo: transferInfo,
+		packets: 1,
+		packetLength: PACKET_SIZE
+	}
+
+	//chrome.usb.interruptTransfer(connectionHandle, transferInfo, callback);
+	chrome.usb.isochronousTransfer(connectionHandle, isocInfo, callback);
 }
 
 function readFromArrayBuffer(arrayBuffer) {
@@ -92,14 +99,18 @@ function connectToDevice(device) {
 
 		console.log("Device opened with connection id "+connectionHandle.handle);
 		console.log("Claiming interface");
-		chrome.usb.claimInterface(connection, 0, function() {
-			console.log("Interface claimed.");
-			deviceReady = true;
+		chrome.usb.listInterfaces(connection, function(interfaces) {
+			console.log(interfaces);
 
-			document.getElementById('connect').style.display = "none";
-			document.getElementById('connect').text = 'Connect';
+			chrome.usb.claimInterface(connection, 0, function() {
+				console.log("Interface claimed.");
+				deviceReady = true;
 
-			document.getElementById('disconnect').style.display = "block";
+				document.getElementById('connect').style.display = "none";
+				document.getElementById('connect').text = 'Connect';
+
+				document.getElementById('disconnect').style.display = "block";
+			});
 		});
 	});
 }
