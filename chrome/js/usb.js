@@ -9,9 +9,9 @@ var PACKET_SIZE = 64;
 chrome.runtime.onSuspend.addListener(disconnectDevice);
 
 window.onload = function() {
-	document.getElementById('connect').addEventListener('click', connectDevice);
-	document.getElementById('disconnect').addEventListener('click', disconnectDevice);
+	document.getElementById('connectionIndicator').addEventListener('click', connectOrDisconnectDevice);
 	document.getElementById('send_test_data').addEventListener('click', sendTestDataToDevice);
+	document.getElementById('receive_data').addEventListener('click', receiveAndPrintData);
 }
 
 var sendTestDataToDevice = (function() {
@@ -26,9 +26,7 @@ var sendTestDataToDevice = (function() {
 		console.log("Packet has been sent.");
 	});
 
-	receiveData(function(data) {
-		console.log(data);
-	});
+	receiveAndPrintData();
 });
 
 function sendData(data, callback) {
@@ -49,7 +47,18 @@ function readFromArrayBuffer(arrayBuffer) {
 	return new Uint8Array(arrayBuffer);
 }
 
+var receiveAndPrintData = (function() {
+	receiveData(function(data) {
+		console.log(data);
+	});
+});
+
 function receiveData(dataCallback) {
+	if (HIDReady !== true) {
+		console.log("Device not connected. Please connect first.");
+		return 0;
+	}
+	
 	console.log("Receiving data...");
 	chrome.hid.receive(HIDConnectionId, PACKET_SIZE, function(dataBuffer) {
 		console.log("Data received.");
@@ -62,7 +71,7 @@ function findHIDDevice() {
 		console.log(devices);
 		if (devices.size === 0) {
 			console.log("No connected RYGY CNC devices were found");
-			document.getElementById('connect').text = 'Connect';
+			document.getElementById('connectionIndicator').className = 'activity disconnected';
 		} else {
 			connectToHIDDevice(devices[0].deviceId);
 		}
@@ -74,20 +83,20 @@ function connectToHIDDevice(deviceId) {
 		HIDConnectionId = connection.connectionId;
 		HIDReady = true;
 		console.log("Device connected with connection id "+HIDConnectionId);
-		document.getElementById('connect').style.display = "none";
-		document.getElementById('connect').text = 'Connect';
-
-		document.getElementById('disconnect').style.display = "block";
+		document.getElementById('connectionIndicator').className = 'activity connected';
 	});
 }
 
-var connectDevice = (function() {
-	if (HIDConnectionId !== null) {
-		console.log("Already connected to device with connection id "+HIDConnectionId+". Disconnect first.");
-		return 0;
-	}
+var connectOrDisconnectDevice = (function() {
+	 if (HIDConnectionId !== null) {
+	 	disconnectDevice();
+	 } else {
+	 	connectDevice();
+	 }
+});
 
-	document.getElementById('connect').text = 'Connecting';
+var connectDevice = (function() {
+	document.getElementById('connectionIndicator').className = 'activity connecting';
 	chrome.permissions.request({
 		'permissions': [{
 			'usbDevices': [{
@@ -103,13 +112,13 @@ var permissionsCallback = (function(result) {
 		console.log('App was granted the "usbDevices" permission.');
 		findHIDDevice();
 	} else {
-		document.getElementById('connect').text = 'Connect';
+		document.getElementById('connectionIndicator').className = 'activity disconnected';
 		console.log('App was NOT granted the "usbDevices" permission.');
 	}
 });
 
 var disconnectDevice = (function() {
-	document.getElementById('disconnect').text = 'Disconnecting';
+	document.getElementById('connectionIndicator').className = 'activity disconnecting';
 	if (HIDConnectionId !== null) {
 		chrome.hid.disconnect(HIDConnectionId, disconnectedCallback);
 	} else {
@@ -122,11 +131,7 @@ var disconnectedCallback = (function() {
 	HIDConnectionId = null;
 	HIDReady = false;
 
-	document.getElementById('disconnect').style.display = "none";
-	document.getElementById('disconnect').text = 'Disconnect';
-
-	document.getElementById('connect').style.display = "block";
-	document.getElementById('connect').text = 'Connect';
+	document.getElementById('connectionIndicator').className = 'activity disconnected';
 });
 
 var logCallback = (function(data) {
