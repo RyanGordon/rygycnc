@@ -7,6 +7,7 @@ html, body {
 #container {
    min-height: 100%;
    position: relative;
+   height: 100%;
 }
 
 #header {
@@ -16,6 +17,7 @@ html, body {
 #body {
    padding: 10px;
    padding-bottom: 60px;
+   height: 80%;
 }
 
 #footer {
