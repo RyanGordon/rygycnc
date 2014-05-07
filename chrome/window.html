@@ -7,20 +7,37 @@
 <link type="text/css" rel="stylesheet" href="css/global.css" />
 </head>
 <body>
+<div id="container">
+	<nav id="header">
+		<ul>
+			<li id="main_nav">CNC
+				<ul>
+					<li>Version</li>
+					<li>About</li>
+					<li>Exit</li>
+				</ul>
+			</li>
+			<li id="file_nav">File
+				<ul>
+					<li>Open GCode</li>
+					<li>Open SVG</li>
+					<li>Open Biases</li>
+					<li>Save File</li>
+				</ul>
+			</li>
+			<li id="help_nav">Help</li>
+		</ul>
+		<span class="activity disconnected" id="connectionIndicator"></span>
+	</nav>
 
-<div class="menu-wrapper">
-<div class="container">
-<ul class="menu" rel="sam1">
-	<li id="main_nav">CNC</li>
-	<li id="file_nav">File</li>
-	<li id="edit_nav">Edit</li>
-	<li id="help_nav">Help</li>
-</ul>
+	<div id="body">
+		Test test blah blah blah blah blah!
+	</div>
+
+	<div id="footer">
+	<input type="button" id="send_test_data" value="Send Test Data" />
+	<input type="button" id="receive_data" value="Receive Data" />
+	</div>
 </div>
-<span class="activity disconnected" id="connectionIndicator"></span>
-</div>
-<br />
-<input type="button" id="send_test_data" value="Send Test Data" />
-<input type="button" id="receive_data" value="Receive Data" />
 </body>
 </html>
