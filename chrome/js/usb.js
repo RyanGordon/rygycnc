@@ -56,7 +56,7 @@ var receiveAndPrintData = (function() {
 function _log() {
 	for (var i=0; i < arguments.length; i++) {
 		console.log(arguments[i]);
-		document.getElementById('debug').value += arguments[i]+"\n";
+		//document.getElementById('debug').value += arguments[i]+"\n";
 	}
 }
 

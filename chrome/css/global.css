@@ -15,16 +15,53 @@ html, body {
 }
 
 #body {
-   padding: 10px;
+   padding-top: 5px;
    padding-bottom: 60px;
-   height: 80%;
+   z-index: 0;
+}
+
+#leftbody {
+	padding-left: 3px;
+	position: absolute;
+	width: 50%;
+	display: block;
+	left: 0;
+	clear: both;
+}
+
+#rightbody {
+	padding-right: 3px;
+	position: absolute;
+	width: 50%;
+	display: block;
+	right: 0;
+	clear: both;
+}
+
+#bottombody {
+	border-top: 1px solid #313030;
+	position: fixed;
+	width: 100%;
+	height: 20%;
+	bottom: 30px;
+}
+
+textarea#gcodes {
+	width: 98%;
+	height: 100%;
+	resize: none;
+	border: none;
+	outline: none;
+	overflow-y: scroll;
 }
 
 #footer {
+   border-top: 1px solid #313030;
    position: absolute;
    bottom: 0;
    width: 100%;
-   height: 30px;
+   height: 20px;
+   z-index: 0;
 }
 
 #disconnect {
