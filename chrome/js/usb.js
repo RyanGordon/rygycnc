@@ -8,11 +8,11 @@ var PACKET_SIZE = 64;
 
 chrome.runtime.onSuspend.addListener(disconnectDevice);
 
-window.onload = function() {
+addOnloadEvent(function() {
 	document.getElementById('connectionIndicator').addEventListener('click', connectOrDisconnectDevice);
 	document.getElementById('send_test_data').addEventListener('click', sendTestDataToDevice);
 	document.getElementById('receive_data').addEventListener('click', receiveAndPrintData);
-}
+});
 
 var sendTestDataToDevice = (function() {
 	if (HIDReady !== true) {
