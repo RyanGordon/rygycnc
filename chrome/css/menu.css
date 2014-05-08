@@ -66,6 +66,7 @@ span.activity {
     position: absolute;
     top: 4px;
     right: 10px;
+    transition: all 100ms ease;
 }
 
 span.activity.disconnected {
@@ -84,12 +85,56 @@ span.activity.connecting {
     background-color: rgb(255,140,0);
     box-shadow: inset 0px 1px 0px 0px rgba(250,250,250,0.5),
                 0px 0px 3px 2px rgba(255,140,0,0.5);
+
+    -webkit-animation-name: orangePulse;
+    -webkit-animation-duration: 2s;
+    -webkit-animation-iteration-count: infinite;
 }
 
 span.activity.disconnecting {
     background-color: rgb(255,140,140);
     box-shadow: inset 0px 1px 0px 0px rgba(250,250,250,0.5),
                 0px 0px 3px 2px rgba(255,140,140,0.5);
+
+    -webkit-animation-name: magentaPulse;
+    -webkit-animation-duration: 2s;
+    -webkit-animation-iteration-count: infinite;
+}
+
+span.activity.disconnected:hover, span.activity.disconnected:focus {
+    -webkit-animation-name: redPulse;
+    -webkit-animation-duration: 2s;
+    -webkit-animation-iteration-count: infinite;
+}
+
+span.activity.connected:hover, span.activity.connected:focus {
+    -webkit-animation-name: greenPulse;
+    -webkit-animation-duration: 2s;
+    -webkit-animation-iteration-count: infinite;
+}
+
+@-webkit-keyframes magentaPulse {
+  from { background-color: #630030; -webkit-box-shadow: 0 0 3px #333; }
+  50% { background-color: #a9014b; -webkit-box-shadow: 0 0 10px #a9014b; }
+  to { background-color: #630030; -webkit-box-shadow: 0 0 3px #333; }
+}
+
+@-webkit-keyframes orangePulse {
+  from { background-color: #d45500; -webkit-box-shadow: 0 0 3px #333; }
+  50% { background-color: #ff5c00; -webkit-box-shadow: 0 0 10px #ff5c00; }
+  to { background-color: #d45500; -webkit-box-shadow: 0 0 3px #333; }
+}
+
+@-webkit-keyframes greenPulse {
+  from { background-color: #749a02; -webkit-box-shadow: 0 0 3px #333; }
+  50% { background-color: #91bd09; -webkit-box-shadow: 0 0 10px #91bd09; }
+  to { background-color: #749a02; -webkit-box-shadow: 0 0 3px #333; }
+}
+
+@-webkit-keyframes redPulse {
+  from { background-color: #bc330d; -webkit-box-shadow: 0 0 3px #333; }
+  50% { background-color: #e33100; -webkit-box-shadow: 0 0 10px #e33100; }
+  to { background-color: #bc330d; -webkit-box-shadow: 0 0 3px #333; }
 }
 
 textarea {
