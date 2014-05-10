@@ -1,18 +1,18 @@
-addOnloadEvent(function() {
-	document.getElementById('main_nav_exit').addEventListener('click', function() { window.close(); });
+$(window).load(function() {
+	$('#main_nav_exit').on('click', function() { window.close(); });
 
-	var aboutModal = document.getElementById('modal_about');
-	var versionModal = document.getElementById('modal_version');
-	document.getElementById('main_nav_about').addEventListener('click', function() {
-		aboutModal.className = 'modal show';
-		aboutModal.getElementsByTagName('footer')[0].addEventListener('click', function() {
-			aboutModal.className = 'modal';
+	var aboutModal = $('#modal_about');
+	var versionModal = $('#modal_version');
+	$('#main_nav_about').on('click', function() {
+		aboutModal.attr('class', 'modal show');
+		aboutModal.on('click', 'footer', function() {
+			aboutModal.attr('class', 'modal');
 		});
 	});
-	document.getElementById('main_nav_version').addEventListener('click', function() {
-		versionModal.className = 'modal show';
-		versionModal.getElementsByTagName('footer')[0].addEventListener('click', function() {
-			versionModal.className = 'modal';
+	$('#main_nav_version').on('click', function() {
+		versionModal.attr('class', 'modal show');
+		versionModal.on('click', 'footer', function() {
+			versionModal.attr('class', 'modal');
 		});
 	});
 });

@@ -8,10 +8,10 @@ var PACKET_SIZE = 64;
 
 chrome.runtime.onSuspend.addListener(disconnectDevice);
 
-addOnloadEvent(function() {
-	document.getElementById('connectionIndicator').addEventListener('click', connectOrDisconnectDevice);
-	document.getElementById('send_test_data').addEventListener('click', sendTestDataToDevice);
-	document.getElementById('receive_data').addEventListener('click', receiveAndPrintData);
+$(window).load(function() {
+	$('#connectionIndicator').on('click', connectOrDisconnectDevice);
+	$('#send_test_data').on('click', sendTestDataToDevice);
+	$('#receive_data').on('click', receiveAndPrintData);
 });
 
 var sendTestDataToDevice = (function() {
@@ -78,7 +78,7 @@ function findHIDDevice() {
 		_log(devices);
 		if (devices.size === 0) {
 			_log("No connected RYGY CNC devices were found");
-			document.getElementById('connectionIndicator').className = 'activity disconnected';
+			$('#connectionIndicator').attr('class', 'activity disconnected');
 		} else {
 			connectToHIDDevice(devices[0].deviceId);
 		}
@@ -90,7 +90,7 @@ function connectToHIDDevice(deviceId) {
 		HIDConnectionId = connection.connectionId;
 		HIDReady = true;
 		_log("Device connected with connection id "+HIDConnectionId);
-		document.getElementById('connectionIndicator').className = 'activity connected';
+		$('#connectionIndicator').attr('class', 'activity connected');
 	});
 }
 
@@ -103,7 +103,7 @@ var connectOrDisconnectDevice = (function() {
 });
 
 var connectDevice = (function() {
-	document.getElementById('connectionIndicator').className = 'activity connecting';
+	$('#connectionIndicator').attr('class', 'activity connecting');
 	chrome.permissions.request({
 		'permissions': [{
 			'usbDevices': [{
@@ -119,13 +119,13 @@ var permissionsCallback = (function(result) {
 		_log('App was granted the "usbDevices" permission.');
 		findHIDDevice();
 	} else {
-		document.getElementById('connectionIndicator').className = 'activity disconnected';
+		$('#connectionIndicator').attr('class', 'activity disconnected');
 		_log('App was NOT granted the "usbDevices" permission.');
 	}
 });
 
 var disconnectDevice = (function() {
-	document.getElementById('connectionIndicator').className = 'activity disconnecting';
+	$('#connectionIndicator').attr('class', 'activity disconnecting');
 	if (HIDConnectionId !== null) {
 		chrome.hid.disconnect(HIDConnectionId, disconnectedCallback);
 	} else {
@@ -138,7 +138,7 @@ var disconnectedCallback = (function() {
 	HIDConnectionId = null;
 	HIDReady = false;
 
-	document.getElementById('connectionIndicator').className = 'activity disconnected';
+	$('#connectionIndicator').attr('class', 'activity disconnected');
 });
 
 var logCallback = (function(data) {
