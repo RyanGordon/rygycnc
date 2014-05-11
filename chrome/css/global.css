@@ -53,6 +53,8 @@ textarea#gcodes {
 	border: none;
 	outline: none;
 	overflow-y: scroll;
+	overflow-x: hidden;
+	white-space: nowrap;
 }
 
 #footer {

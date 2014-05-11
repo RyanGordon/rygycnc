@@ -15,4 +15,44 @@ $(window).load(function() {
 			versionModal.attr('class', 'modal');
 		});
 	});
+
+	$("#file_nav_open_gcode").on('click', function() {
+		openFileDialogAndRead(['ngc', 'gcode', 'g'], function(fileText) {
+			$('#gcodes').val(fileText);
+		});
+	});
 });
+
+function openFileDialogAndRead(extensions, callback) {
+	var accepts = [{
+		extensions: extensions
+	}];
+
+	chrome.fileSystem.chooseEntry({type: 'openFile', accepts: accepts}, function(fileObject) {
+		if (!fileObject) {
+			console.log("no file object");
+			return;
+		}
+
+		// Use local storage to retain access to this file
+		chrome.storage.local.set({'chosenFile': chrome.fileSystem.retainEntry(fileObject)});
+		readFile(fileObject, callback);
+	});
+}
+
+function readFile(_fileObject, callback) {
+	console.log("Reading file object");
+	var fileObject = _fileObject;
+	fileObject.file(function(file) {
+		console.log("Opening file reader");
+		var reader = new FileReader();
+
+		reader.onerror = function(e) { console.log(e); };
+		reader.onload = function(e) {
+			callback(e.target.result);
+		};
+
+		console.log("Reading file");
+		reader.readAsText(file);
+	});
+}
