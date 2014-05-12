@@ -53,13 +53,6 @@ var receiveAndPrintData = (function() {
 	});
 });
 
-function _log() {
-	for (var i=0; i < arguments.length; i++) {
-		console.log(arguments[i]);
-		//document.getElementById('debug').value += arguments[i]+"\n";
-	}
-}
-
 function receiveData(dataCallback) {
 	if (HIDReady !== true) {
 		_log("Device not connected. Please connect first.");
@@ -77,13 +70,21 @@ function findHIDDevice() {
 	chrome.hid.getDevices({"vendorId": VENDOR_ID, "productId": PRODUCT_ID}, function(devices) {
 		_log(devices);
 		if (devices.size === 0) {
-			_log("No connected RYGY CNC devices were found");
-			$('#connectionIndicator').attr('class', 'activity disconnected');
+			noDevicesFound();
 		} else {
 			connectToHIDDevice(devices[0].deviceId);
 		}
 	});
+
+	// This might cause possible contention with the above function?
+	setTimeout(noDevicesFound, 1000);
 }
+
+var noDevicesFound = (function() {
+	_log("No connected RYGY CNC devices were found");
+	$('#connectionIndicator').attr('class', 'activity disconnected');
+	updateStatus('No devices found');
+});
 
 function connectToHIDDevice(deviceId) {
 	chrome.hid.connect(deviceId, function(connection) {
@@ -91,6 +92,7 @@ function connectToHIDDevice(deviceId) {
 		HIDReady = true;
 		_log("Device connected with connection id "+HIDConnectionId);
 		$('#connectionIndicator').attr('class', 'activity connected');
+		updateStatus('Connected');
 	});
 }
 
@@ -104,6 +106,7 @@ var connectOrDisconnectDevice = (function() {
 
 var connectDevice = (function() {
 	$('#connectionIndicator').attr('class', 'activity connecting');
+	updateStatus('Connecting');
 	chrome.permissions.request({
 		'permissions': [{
 			'usbDevices': [{
@@ -126,6 +129,7 @@ var permissionsCallback = (function(result) {
 
 var disconnectDevice = (function() {
 	$('#connectionIndicator').attr('class', 'activity disconnecting');
+	updateStatus('Disconnecting');
 	if (HIDConnectionId !== null) {
 		chrome.hid.disconnect(HIDConnectionId, disconnectedCallback);
 	} else {
@@ -139,8 +143,5 @@ var disconnectedCallback = (function() {
 	HIDReady = false;
 
 	$('#connectionIndicator').attr('class', 'activity disconnected');
-});
-
-var logCallback = (function(data) {
-	_log(data);
+	updateStatus('Disconnected');
 });

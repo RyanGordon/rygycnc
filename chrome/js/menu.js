@@ -21,8 +21,21 @@ $(window).load(function() {
 			$('#gcodes').val(fileText);
 		});
 	});
+
+	$("#file_nav_open_svg").on('click', function() {
+		openFileDialogAndRead(['svg'], function(fileText) {
+			console.log(fileText);
+		});
+	});
+
+	$("#file_nav_open_biases").on('click', function() {
+		openFileDialogAndRead(['bias'], function(fileText) {
+			console.log(fileText);
+		});
+	});
 });
 
+// Read file
 function openFileDialogAndRead(extensions, callback) {
 	var accepts = [{
 		extensions: extensions
@@ -55,4 +68,58 @@ function readFile(_fileObject, callback) {
 		console.log("Reading file");
 		reader.readAsText(file);
 	});
+}
+
+// Write file
+function writeFileDialog(suggestedName, data) {
+	var config = {type: 'saveFile', suggestedName: suggestedName};
+
+	chrome.fileSystem.chooseEntry(config, function(writableEntry) {
+		var blob = new Blob([data], {type: 'text/plain'});
+		writeFileEntry(writableEntry, blob, function(e) {
+			output.textContent = 'Write complete :)';
+		});
+	});
+}
+
+
+function writeFileEntry(writableEntry, blob, callback) {
+  if (!writableEntry) {
+    output.textContent = 'Nothing selected.';
+    return;
+  }
+
+  writableEntry.createWriter(function(writer) {
+
+    writer.onerror = errorHandler;
+    writer.onwriteend = callback;
+
+    // If we have data, write it to the file. Otherwise, just use the file we loaded.
+	writer.truncate(blob.size);
+	waitForIO(writer, function() {
+	  writer.seek(0);
+	  writer.write(blob);
+	});
+  }, errorHandler);
+}
+
+function waitForIO(writer, callback) {
+  // set a watchdog to avoid eventual locking:
+  var start = Date.now();
+  // wait for a few seconds
+
+  var reentrant = function() {
+    if (writer.readyState === writer.WRITING && Date.now()-start<4000) {
+      setTimeout(reentrant, 100);
+      return;
+    }
+
+    if (writer.readyState === writer.WRITING) {
+      console.error("Write operation taking too long, aborting! (current writer readyState is "+writer.readyState+")");
+      writer.abort();
+    } else {
+      callback();
+    }
+  };
+  setTimeout(reentrant, 100);
 }
