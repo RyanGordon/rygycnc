@@ -1,3 +1,14 @@
+$(window).load(function() {
+  $('#powerswitch').on('click', function() {
+    console.log("Power switch pressed");
+    if ($(this).prop('checked') === true) {
+      enablePower();
+    } else {
+      disablePower();
+    }
+  });
+});
+
 $(document).on('ready', function() {
   updateStatus('Disconnected');
 });
@@ -16,4 +27,12 @@ var logCallback = (function(data) {
 function updateStatus(status) {
   console.log('Status: '+status);
   $('#status').text('Status: '+status);
+}
+
+function enablePower() {
+  console.log("Enabling power");
+}
+
+function disablePower() {
+  console.log("Disabling power");
 }

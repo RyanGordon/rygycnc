@@ -6,9 +6,12 @@
 <script src="js/global.js"></script>
 <script src="js/usb.js"></script>
 <script src="js/menu.js"></script>
+<script src="js/three.min.js"></script>
+<script src="js/gcode_scene.js"></script>
 <link type="text/css" rel="stylesheet" href="css/global.css" />
 <link type="text/css" rel="stylesheet" href="css/modal.css" />
 <link type="text/css" rel="stylesheet" href="css/menu.css" />
+<link type="text/css" rel="stylesheet" href="css/navigation.css" />
 </head>
 <body>
 <div id="container">
@@ -49,14 +52,23 @@
 
 	<div id="body">
 		<div id="leftbody">
+			<div class="powerswitch">
+			    <input type="checkbox" name="powerswitch" class="powerswitch-checkbox" id="powerswitch">
+			    <label class="powerswitch-label" for="powerswitch">
+			        <div class="powerswitch-inner"></div>
+			        <div class="powerswitch-switch"></div>
+			    </label>
+			</div>
+			X Direction: <div class="button">-</div> <div class="button">+</div><br />
+			Y Direction: <div class="button">-</div> <div class="button">+</div><br />
+			Z Direction: <div class="button">-</div> <div class="button">+</div><br />
+			<br /><br />
 			<input type="button" id="send_test_data" value="Send Test Data" />
 			<input type="button" id="receive_data" value="Receive Data" />
-			<br /><br />
+			<br />
 			Stuff on the left
 		</div>
-		<div id="rightbody">
-			Stuff on the right
-		</div>
+		<div id="rightbody"></div>
 		<div id="bottombody">
 			<textarea id="gcodes" readonly="readonly"></textarea>
 		</div>
