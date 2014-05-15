@@ -1,16 +1,9 @@
 $(window).load(function() {
-  $('#powerswitch').on('click', function() {
-    console.log("Power switch pressed");
-    if ($(this).prop('checked') === true) {
-      enablePower();
-    } else {
-      disablePower();
-    }
-  });
 });
 
 $(document).on('ready', function() {
   updateStatus('Disconnected');
+  setupPowerButton();
 });
 
 function _log() {
@@ -31,8 +24,33 @@ function updateStatus(status) {
 
 function enablePower() {
   console.log("Enabling power");
+  if (HIDReady === false) {
+    connectDevice();
+  }
 }
 
 function disablePower() {
+  if (HIDReady === false) {
+    return;
+  }
   console.log("Disabling power");
+}
+
+function setupPowerButton() {
+  $("#powerButton").switchButton({
+    width: 40,
+    height: 15,
+    button_width: 20,
+    on_callback: (function() { powerButtonClick(true) }),
+    off_callback: (function() { powerButtonClick(false) })
+  });
+}
+
+function powerButtonClick(checked) {
+  console.log("Power switch pressed");
+  if (checked === true) {
+    enablePower();
+  } else {
+    disablePower();
+  }
 }

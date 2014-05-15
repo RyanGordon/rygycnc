@@ -88,8 +88,8 @@ span.activity.connecting {
     box-shadow: inset 0px 1px 0px 0px rgba(250,250,250,0.5),
                 0px 0px 3px 2px rgba(255,140,0,0.5);
 
-    -webkit-animation-name: orangePulse;
-    -webkit-animation-duration: 2s;
+    -webkit-animation-name: bluePulse;
+    -webkit-animation-duration: 1s;
     -webkit-animation-iteration-count: infinite;
 }
 
@@ -99,7 +99,7 @@ span.activity.disconnecting {
                 0px 0px 3px 2px rgba(255,140,140,0.5);
 
     -webkit-animation-name: magentaPulse;
-    -webkit-animation-duration: 2s;
+    -webkit-animation-duration: 1s;
     -webkit-animation-iteration-count: infinite;
 }
 
@@ -113,6 +113,12 @@ span.activity.connected:hover, span.activity.connected:focus {
     -webkit-animation-name: greenPulse;
     -webkit-animation-duration: 2s;
     -webkit-animation-iteration-count: infinite;
+}
+
+@-webkit-keyframes bluePulse {
+  from { background-color: #007d9a; -webkit-box-shadow: 0 0 9px #333; }
+  50% { background-color: #2daebf; -webkit-box-shadow: 0 0 18px #2daebf; }
+  to { background-color: #007d9a; -webkit-box-shadow: 0 0 9px #333; }
 }
 
 @-webkit-keyframes magentaPulse {

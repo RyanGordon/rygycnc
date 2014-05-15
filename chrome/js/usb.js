@@ -77,12 +77,17 @@ function findHIDDevice() {
 	});
 
 	// This might cause possible contention with the above function?
-	setTimeout(noDevicesFound, 1000);
+	setTimeout(noDevicesFound, 500);
 }
 
 var noDevicesFound = (function() {
+	if (HIDReady !== false) {
+		return;
+	}
 	_log("No connected RYGY CNC devices were found");
 	$('#connectionIndicator').attr('class', 'activity disconnected');
+	$('#powerButton').prop('checked', false);
+	$("#powerButton").switchButton("redraw");
 	updateStatus('No devices found');
 });
 
@@ -143,5 +148,7 @@ var disconnectedCallback = (function() {
 	HIDReady = false;
 
 	$('#connectionIndicator').attr('class', 'activity disconnected');
+	$('#powerButton').prop('checked', false);
+	$("#powerButton").switchButton("redraw");
 	updateStatus('Disconnected');
 });
