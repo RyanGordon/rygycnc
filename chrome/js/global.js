@@ -4,6 +4,9 @@ $(window).load(function() {
 $(document).on('ready', function() {
   updateStatus('Disconnected');
   setupPowerButton();
+  setupSlideButtons();
+  setupSpindlePowerButton();
+  setupSpindleDirectionButton();
 });
 
 function _log() {
@@ -52,5 +55,133 @@ function powerButtonClick(checked) {
     enablePower();
   } else {
     disablePower();
+  }
+}
+
+function xSpeedChange(speed) {
+  console.log("X-Direction Speed: "+speed+"%");
+}
+
+function ySpeedChange(speed) {
+  console.log("Y-Direction Speed: "+speed+"%");
+}
+
+function zSpeedChange(speed) {
+  console.log("Z-Direction Speed: "+speed+"%");
+}
+
+function spindleSpeedChange(speed) {
+  console.log("Spindle Speed: "+speed+"%");
+}
+
+function setupSlideButtons() {
+  $("#x-speed").slider({
+    orientation: "horizontal",
+    range: "min",
+    min: 0,
+    max: 100,
+    value: 90,
+    slide: function(event, ui) {
+      xSpeedChange(ui.value);
+      $("#x-speed-amount").val(ui.value+"%");
+    }
+  });
+  $("#x-speed-amount").val($("#x-speed").slider("value")+"%");
+
+  $("#y-speed").slider({
+    orientation: "horizontal",
+    range: "min",
+    min: 0,
+    max: 100,
+    value: 90,
+    slide: function(event, ui) {
+      ySpeedChange(ui.value);
+      $("#y-speed-amount").val(ui.value+"%");
+    }
+  });
+  $("#y-speed-amount").val($("#y-speed").slider("value")+"%");
+
+  $("#z-speed").slider({
+    orientation: "horizontal",
+    range: "min",
+    min: 0,
+    max: 100,
+    value: 90,
+    slide: function(event, ui) {
+      zSpeedChange(ui.value);
+      $("#z-speed-amount").val(ui.value+"%");
+    }
+  });
+  $("#z-speed-amount").val($("#z-speed").slider("value")+"%");
+
+  $("#spindle-speed").slider({
+    orientation: "horizontal",
+    range: "min",
+    min: 0,
+    max: 100,
+    value: 90,
+    slide: function(event, ui) {
+      spindleSpeedChange(ui.value);
+      $("#spindle-speed-amount").val(ui.value+"%");
+    }
+  });
+  $("#spindle-speed-amount").val($("#spindle-speed").slider("value")+"%");
+}
+
+function setupSpindlePowerButton() {
+  $("#spindlePowerButton").switchButton({
+    width: 40,
+    height: 15,
+    button_width: 20,
+    on_callback: (function() { spindlePowerButtonClick(true) }),
+    off_callback: (function() { spindlePowerButtonClick(false) })
+  });
+}
+
+function spindlePowerButtonClick(checked) {
+  console.log("Spindle Power switch pressed");
+  if (checked === true) {
+    enableSpindlePower();
+  } else {
+    disableSpindlePower();
+  }
+}
+
+function enableSpindlePower() {
+  console.log("Enabling spindle power");
+}
+
+function disableSpindlePower() {
+  console.log("Disabling spindle power");
+}
+
+function setupSpindleDirectionButton() {
+  $("#spindleDirectionButton").switchButton({
+    width: 40,
+    height: 15,
+    button_width: 20,
+    on_label: "Right",
+    off_label: "Left",
+    on_callback: (function() { spindleDirectionButtonClick(true) }),
+    off_callback: (function() { spindleDirectionButtonClick(false) })
+  });
+}
+
+function spindleDirectionButtonClick(checked) {
+  console.log("Spindle direction switch pressed");
+  if (checked === true) {
+    setSpindleDirection('right');
+  } else {
+    setSpindleDirection('left');
+  }
+}
+
+function setSpindleDirection(direction) {
+  console.log("Switching spindle direction to "+direction);
+
+  if (direction === 'right') {
+
+  } else {
+
   }
 }

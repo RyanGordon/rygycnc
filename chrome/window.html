@@ -14,6 +14,7 @@
 <link type="text/css" rel="stylesheet" href="css/modal.css" />
 <link type="text/css" rel="stylesheet" href="css/menu.css" />
 <link type="text/css" rel="stylesheet" href="css/navigation.css" />
+<link type="text/css" rel="stylesheet" href="css/jquery-ui.css" />
 <link type="text/css" rel="stylesheet" href="css/jquery.switchButton.css" />
 </head>
 <body>
@@ -55,10 +56,15 @@
 
 	<div id="body">
 		<div id="leftbody">
-			<input type="checkbox" id="powerButton" value="1" />
-			X Direction: <div class="button">-</div> <div class="button">+</div><br />
-			Y Direction: <div class="button">-</div> <div class="button">+</div><br />
-			Z Direction: <div class="button">-</div> <div class="button">+</div><br />
+			<input type="checkbox" id="powerButton" value="0" />
+			X Direction: <div class="button">-</div> <div class="button">+</div> <div id="x-speed" class="speed-slider"></div> <input type="text" id="x-speed-amount" class="speed-display" /><br />
+			Y Direction: <div class="button">-</div> <div class="button">+</div> <div id="y-speed" class="speed-slider"></div> <input type="text" id="y-speed-amount" class="speed-display" /><br />
+			Z Direction: <div class="button">-</div> <div class="button">+</div> <div id="z-speed" class="speed-slider"></div> <input type="text" id="z-speed-amount" class="speed-display" /><br />
+			<br />
+			Spindle: <br />
+			<input type="checkbox" id="spindlePowerButton" value="0" />
+			<input type="checkbox" id="spindleDirectionButton" value="0" />
+			Speed: <div id="spindle-speed" class="speed-slider"></div> <input type="text" id="spindle-speed-amount" class="speed-display" /><br />
 			<br /><br />
 			<input type="button" id="send_test_data" value="Send Test Data" />
 			<input type="button" id="receive_data" value="Receive Data" />
