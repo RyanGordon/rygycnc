@@ -1,3 +1,5 @@
+var gcodeTextbox;
+
 $(window).load(function() {
 });
 
@@ -7,6 +9,7 @@ $(document).on('ready', function() {
   setupSlideButtons();
   setupSpindlePowerButton();
   setupSpindleDirectionButton();
+  setupGcodeTextArea();
 });
 
 function _log() {
@@ -39,13 +42,37 @@ function disablePower() {
   console.log("Disabling power");
 }
 
+function setupGcodeTextArea() {
+  gcodeTextbox = CodeMirror.fromTextArea($("#gcodes").get(0), {
+    lineNumbers: true,
+    readOnly: true,
+    mode: "css"
+  });
+
+  gcodeTextbox.setSize("100%", "100%");
+
+  $(".CodeMirror-lines").children().on('click', function() {
+    setGcodeSelectionLine(gcodeTextbox.getCursor().line);
+  });
+}
+
+function goToGcodeLine(line) {
+  gcodeTextbox.setCursor(line, 0);
+  setGcodeSelectionLine(line);
+}
+
+function setGcodeSelectionLine(line) {
+  gcodeTextbox.setSelection({line: line, ch: 0}, {line: line+1, ch: 0});
+  gcodeTextbox.focus();
+}
+
 function setupPowerButton() {
   $("#powerButton").switchButton({
     width: 40,
     height: 15,
     button_width: 20,
-    on_callback: (function() { powerButtonClick(true) }),
-    off_callback: (function() { powerButtonClick(false) })
+    on_callback: (function() { powerButtonClick(true); }),
+    off_callback: (function() { powerButtonClick(false); })
   });
 }
 
