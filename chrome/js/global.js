@@ -6,6 +6,7 @@ $(window).load(function() {
 $(document).on('ready', function() {
   updateStatus('Disconnected');
   setupPowerButton();
+  setupAxisButtons();
   setupSlideButtons();
   setupSpindlePowerButton();
   setupSpindleDirectionButton();
@@ -83,6 +84,56 @@ function powerButtonClick(checked) {
   } else {
     disablePower();
   }
+}
+
+function setupAxisButtons() {
+  $("#x-down").on('mousedown', function() {
+    console.log("X axis down go");
+  });
+
+  $("#x-down").on('mouseup', function() {
+    console.log("X axis down stop");
+  });
+
+  $("#x-up").on('mouseup', function() {
+    console.log("X axis up go");
+  });
+
+  $("#x-up").on('mouseup', function() {
+    console.log("X axis up stop");
+  });
+
+  $("#y-down").on('mousedown', function() {
+    console.log("Y axis down go");
+  });
+
+  $("#y-down").on('mouseup', function() {
+    console.log("Y axis down stop");
+  });
+
+  $("#y-up").on('mouseup', function() {
+    console.log("Y axis up go");
+  });
+
+  $("#y-up").on('mouseup', function() {
+    console.log("Y axis up stop");
+  });
+
+  $("#z-down").on('mousedown', function() {
+    console.log("Z axis down go");
+  });
+
+  $("#z-down").on('mouseup', function() {
+    console.log("Z axis down stop");
+  });
+
+  $("#z-up").on('mouseup', function() {
+    console.log("Z axis up go");
+  });
+
+  $("#z-up").on('mouseup', function() {
+    console.log("Z axis up stop");
+  });
 }
 
 function xSpeedChange(speed) {
