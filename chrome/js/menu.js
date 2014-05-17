@@ -19,6 +19,8 @@ $(window).load(function() {
 	$("#file_nav_open_gcode").on('click', function() {
 		openFileDialogAndRead(['ngc', 'gcode', 'g'], function(fileText) {
 			gcodeTextbox.setValue(fileText);
+			var gcode = new Gcode(fileText);
+			gcode.process();
 		});
 	});
 
