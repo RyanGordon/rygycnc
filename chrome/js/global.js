@@ -88,52 +88,100 @@ function powerButtonClick(checked) {
 
 function setupAxisButtons() {
   $("#x-down").on('mousedown', function() {
-    console.log("X axis down go");
+    xAxisDownGo();
   });
 
   $("#x-down").on('mouseup', function() {
-    console.log("X axis down stop");
+    xAxisDownStop();
+  });
+
+  $("#x-up").on('mousedown', function() {
+    xAxisUpGo();
   });
 
   $("#x-up").on('mouseup', function() {
-    console.log("X axis up go");
-  });
-
-  $("#x-up").on('mouseup', function() {
-    console.log("X axis up stop");
+    xAxisUpStop();
   });
 
   $("#y-down").on('mousedown', function() {
-    console.log("Y axis down go");
+    yAxisDownGo();
   });
 
   $("#y-down").on('mouseup', function() {
-    console.log("Y axis down stop");
+    yAxisDownStop();
+  });
+
+  $("#y-up").on('mousedown', function() {
+    yAxisUpGo();
   });
 
   $("#y-up").on('mouseup', function() {
-    console.log("Y axis up go");
-  });
-
-  $("#y-up").on('mouseup', function() {
-    console.log("Y axis up stop");
+    yAxisUpStop();
   });
 
   $("#z-down").on('mousedown', function() {
-    console.log("Z axis down go");
+    zAxisDownGo();
   });
 
   $("#z-down").on('mouseup', function() {
-    console.log("Z axis down stop");
+    zAxisDownStop();
+  });
+
+  $("#z-up").on('mousedown', function() {
+    zAxisUpGo();
   });
 
   $("#z-up").on('mouseup', function() {
-    console.log("Z axis up go");
+    zAxisUpStop();
   });
+}
 
-  $("#z-up").on('mouseup', function() {
-    console.log("Z axis up stop");
-  });
+function xAxisDownGo() {
+  console.log("X axis down go");
+}
+
+function xAxisDownStop() {
+  console.log("X axis down stop");
+}
+
+function xAxisUpGo() {
+  console.log("X axis up go");
+}
+
+function xAxisUpStop() {
+  console.log("X axis up stop");
+}
+
+function yAxisDownGo() {
+  console.log("Y axis down go");
+}
+
+function yAxisDownStop() {
+  console.log("Y axis down stop");
+}
+
+function yAxisUpGo() {
+  console.log("Y axis up go");
+}
+
+function yAxisUpStop() {
+  console.log("Y axis up stop");
+}
+
+function zAxisDownGo() {
+  console.log("Z axis down go");
+}
+
+function zAxisDownStop() {
+  console.log("Z axis down stop");
+}
+
+function zAxisUpGo() {
+  console.log("Z axis up go");
+}
+
+function zAxisUpStop() {
+  console.log("Z axis up stop");
 }
 
 function xSpeedChange(speed) {
