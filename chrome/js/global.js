@@ -252,6 +252,8 @@ function setupSlideButtons() {
     }
   });
   $("#spindle-speed-amount").val($("#spindle-speed").slider("value")+"%");
+
+  $(document).find(".ui-slider-handle").unbind("keydown");
 }
 
 function setupSpindlePowerButton() {
