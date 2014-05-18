@@ -10,6 +10,9 @@ function Gcode(lines) {
 	this.nextTool = null;
 	this.currentLine = 0;
 	this.inComment = false;
+	this.spindleSpeed = null; // RPM
+	this.spindleDirection = 'CW';
+	this.spindleOn = false;
 }
 
 Gcode.prototype.process = function() {
@@ -99,6 +102,30 @@ Gcode.prototype.process = function() {
 					this.currentTool = this.nextTool;
 					this.intermediate.push({'TOOL': this.currentTool, 'line': lineNumber});
 					break;
+				case "M3":
+				case "M03":
+					console.log("Changing spindle to clockwise direction");
+					this.spindleDirection = 'CW';
+					if (this.spindleOn === true) {
+						this.intermediate.push({'spindle': this.spindleSpeed});
+					}
+					break;
+				case "M4":
+				case "M04":
+					console.log("Changing spindle to couterclockwise direction");
+					this.spindleDirection = 'CCW';
+					if (this.spindleOn === true) {
+						this.intermediate.push({'spindle': -1*this.spindleSpeed});
+					}
+					break;
+				case "M5":
+				case "M05":
+					console.log("Stopping spindle");
+					if (this.spindleOn === true) {
+						this.spindleOn = false;
+						this.intermediate.push({'spindle': 0});
+					}
+					break;
 				case "":
 					console.log("Ignoring a blank line");
 					break;
@@ -115,6 +142,16 @@ Gcode.prototype.process = function() {
 						console.log("Changing feed rate speed");
 						this.feedRate = command.substr(1);
 						this.intermediate.push({'feed': this.feedRate, 'line': lineNumber});
+					} else if(command.indexOf('S') === 0) {
+						console.log("Changing spindle speed");
+						this.spindleSpeed = command.substr(1);
+						if (this.spindleOn === true) {
+							if (this.spindleDirection === 'CW') {
+								this.intermediate.push({'spindle': this.spindleSpeed});
+							} else {
+								this.intermediate.push({'spindle': -1*this.spindleSpeed});
+							}
+						}
 					} else if(command.indexOf('T') === 0) {
 						console.log("Preparing next tool for tool change");
 						this.nextTool = command.substr(1);
