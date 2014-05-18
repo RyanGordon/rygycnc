@@ -2,11 +2,19 @@ function Gcode(lines) {
 	this.lines = lines.replace("\r\n", "\n").replace("\r", "\n").split("\n");
 	this.measurementMode = 'inches';
 	this.distanceMode = 'absolute';
+	this.currentPosition = {'x': 0, 'y': 0, 'z': 0};
+	this.coordinateSytem = 'xyz';
+	this.feedRate = null;
+	this.intermediate = [];
+	this.currentTool = null;
+	this.nextTool = null;
+	this.currentLine = 0;
+	this.inComment = false;
 }
 
 Gcode.prototype.process = function() {
-	$.each(this.lines, function(index, value) {
-		value = value.trim().split(' ');
+	$.each(this.lines, function(lineNumber, fullLine) {
+		value = fullLine.trim().split(' ');
 
 		// This loop allows multiple gcodes to be on a single line
 		for (var i=0; i < value.length; i++) {
@@ -20,26 +28,102 @@ Gcode.prototype.process = function() {
 					console.log("Measurement Mode: Millimeters");
 					this.measurementMode = 'millimeters';
 					break;
+				case "G90":
+					console.log("Distance Mode: Absolute");
+					this.distanceMode = 'absolute';
+					break;
+				case "G91":
+					console.log("Distance Mode: Relative");
+					this.distanceMode = 'relative';
+					break;
+				case "G54":
+					console.log("Coordinate System: xyz");
+					this.coordinateSytem = 'xyz';
+					break;
 				case "G0":
 				case "G00":
 					console.log("Rapid Motion");
+					allowedParams = ['X', 'Y', 'Z'];
+					params = {'x': this.currentPosition.x, 'y': this.currentPosition.y, 'z': this.currentPosition.z, 'line': lineNumber};
+					while (i < value.length) {
+						nextCommand = value[i];
+
+						if ($.inArray(nextCommand.charAt(0), allowedParams) !== -1) {
+							if (this.distanceMode === 'relative') {
+								params[nextCommand.charAt(0).toLowerCase()] += nextCommand.substr(1);
+							} else {
+								params[nextCommand.charAt(0).toLowerCase()] = nextCommand.substr(1);
+							}
+						}
+						i++;
+					}
+
+					this.currentPosition.x = params.x;
+					this.currentPosition.y = params.y;
+					this.currentPosition.z = params.z;
+
+					this.intermediate.push(params);
 					break;
 				case "G1":
 				case "G01":
 					console.log("Coordinated Motion");
+					allowedParams = ['X', 'Y', 'Z'];
+					params = {'x': this.currentPosition.x, 'y': this.currentPosition.y, 'z': this.currentPosition.z, 'line': lineNumber};
+					while (++i < value.length) {
+						nextCommand = value[i];
+
+						if ($.inArray(nextCommand.charAt(0), allowedParams) !== -1) {
+							if (this.distanceMode === 'relative') {
+								params[nextCommand.charAt(0).toLowerCase()] += nextCommand.substr(1);
+							} else {
+								params[nextCommand.charAt(0).toLowerCase()] = nextCommand.substr(1);
+							}
+						}
+					}
+
+					this.currentPosition.x = params.x;
+					this.currentPosition.y = params.y;
+					this.currentPosition.z = params.z;
+
+					this.intermediate.push(params);
+					break;
+				case "M2":
+				case "M02":
+				case "M30":
+					console.log("End of Program");
+					this.intermediate.push({'end': true, 'line': lineNumber});
+					break;
+				case "M6":
+				case "M06":
+					console.log("Changing tool. This will pause the program to allow for the person to change the tool");
+					this.currentTool = this.nextTool;
+					this.intermediate.push({'TOOL': this.currentTool, 'line': lineNumber});
 					break;
 				case "":
 					console.log("Ignoring a blank line");
 					break;
 				default:
-					if (command.indexOf('(') !== -1) {
-						console.log("Ignoring a comment");
-						// A comment
+					// A comment
+					if (command.indexOf('(') === 0) {
+						while (++i < value.length) {
+							if (value[i].indexOf(')') !== -1) {
+								break;
+							}
+						}
+						console.log("Comment: "+fullLine);
+					} else if(command.indexOf('F') === 0) {
+						console.log("Changing feed rate speed");
+						this.feedRate = command.substr(1);
+						this.intermediate.push({'feed': this.feedRate, 'line': lineNumber});
+					} else if(command.indexOf('T') === 0) {
+						console.log("Preparing next tool for tool change");
+						this.nextTool = command.substr(1);
 					} else {
-						console.log("Unknown command");
+						console.log("Unknown command: "+command+" ("+fullLine+")");
 					}
 			}
 		}
-		console.log(value);
-	});
+	}.bind(this));
+
+	//console.log(this.intermediate);
 };
