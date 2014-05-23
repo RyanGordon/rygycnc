@@ -1,7 +1,6 @@
 $(document).on('ready', function() {
   $('#rightbody').append(createScene());
   renderScene();
-  drawLine([-10, 10, 10], [10, 10, 10]);
 });
 
 var scene, renderer, camera, controls;
@@ -52,8 +51,9 @@ function createScene() {
   scene = new THREE.Scene();
   scene.add(camera);
 
-  // start the camera at z index 100 and look at vector 0,0,0
+  // start the camera at iso and look at vector 0,0,0
   camera.position.set(50, 50, 50);
+  camera.up = new THREE.Vector3(0, 0, 1);
   camera.lookAt(new THREE.Vector3(0, 0, 0));
 
   controls = new THREE.OrbitControls(camera, $('#rightbody')[0]);
@@ -81,7 +81,7 @@ function renderScene() {
   light = new THREE.AmbientLight(0x222222);
   scene.add(light);
 
-  addAxes(1000);
+  addAxes(10000);
 
   // create the sphere's material
   var sphereMaterial = new THREE.MeshLambertMaterial({ color: 0xCC0000 });
@@ -93,7 +93,7 @@ function renderScene() {
 }
 
 function drawLine(point1, point2) {
-  var lineMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff });
+  var lineMaterial = new THREE.LineBasicMaterial({ color: 0xFFFFFF });
   var geometry = new THREE.Geometry();
   geometry.vertices.push(new THREE.Vector3(point1[0], point1[1], point1[2]));
   geometry.vertices.push(new THREE.Vector3(point2[0], point2[1], point2[2]));
@@ -106,7 +106,7 @@ function drawLine(point1, point2) {
 
 function render() {
   requestAnimationFrame(render);
-  //controls.update();
+  //console.log(camera.position);
   renderer.render(scene, camera);
 }
 
@@ -205,8 +205,8 @@ THREE.OrbitControls = function ( object, domElement ) {
 
   // How far you can orbit vertically, upper and lower limits.
   // Range is 0 to Math.PI radians.
-  this.minPolarAngle = 0; // radians
-  this.maxPolarAngle = Math.PI; // radians
+  this.minPolarAngle = -Math.PI; // radians
+  this.maxPolarAngle = 2*Math.PI; // radians
 
   // Set to true to disable use of the keys
   this.noKeys = true;

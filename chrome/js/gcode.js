@@ -2,10 +2,12 @@ function Gcode(lines) {
 	this.lines = lines.replace("\r\n", "\n").replace("\r", "\n").split("\n");
 	this.measurementMode = 'inches';
 	this.distanceMode = 'absolute';
-	this.currentPosition = {'x': 0, 'y': 0, 'z': 0};
+	this.currentPosition = {'x': BigNumber(0), 'y': BigNumber(0), 'z': BigNumber(0)};
 	this.coordinateSytem = 'xyz';
 	this.feedRate = null;
 	this.intermediate = [];
+	this.intermediateRelative = [];
+	this.processed = [];
 	this.currentTool = null;
 	this.nextTool = null;
 	this.currentLine = 0;
@@ -53,17 +55,17 @@ Gcode.prototype.process = function() {
 
 						if ($.inArray(nextCommand.charAt(0), allowedParams) !== -1) {
 							if (this.distanceMode === 'relative') {
-								params[nextCommand.charAt(0).toLowerCase()] += nextCommand.substr(1);
+								params[nextCommand.charAt(0).toLowerCase()] += BigNumber(nextCommand.substr(1));
 							} else {
-								params[nextCommand.charAt(0).toLowerCase()] = nextCommand.substr(1);
+								params[nextCommand.charAt(0).toLowerCase()] = BigNumber(nextCommand.substr(1));
 							}
 						}
 						i++;
 					}
 
-					this.currentPosition.x = params.x;
-					this.currentPosition.y = params.y;
-					this.currentPosition.z = params.z;
+					this.currentPosition.x = BigNumber(params.x);
+					this.currentPosition.y = BigNumber(params.y);
+					this.currentPosition.z = BigNumber(params.z);
 
 					this.intermediate.push(params);
 					break;
@@ -77,16 +79,16 @@ Gcode.prototype.process = function() {
 
 						if ($.inArray(nextCommand.charAt(0), allowedParams) !== -1) {
 							if (this.distanceMode === 'relative') {
-								params[nextCommand.charAt(0).toLowerCase()] += nextCommand.substr(1);
+								params[nextCommand.charAt(0).toLowerCase()] += BigNumber(nextCommand.substr(1));
 							} else {
-								params[nextCommand.charAt(0).toLowerCase()] = nextCommand.substr(1);
+								params[nextCommand.charAt(0).toLowerCase()] = BigNumber(nextCommand.substr(1));
 							}
 						}
 					}
 
-					this.currentPosition.x = params.x;
-					this.currentPosition.y = params.y;
-					this.currentPosition.z = params.z;
+					this.currentPosition.x = BigNumber(params.x);
+					this.currentPosition.y = BigNumber(params.y);
+					this.currentPosition.z = BigNumber(params.z);
 
 					this.intermediate.push(params);
 					break;
@@ -162,8 +164,39 @@ Gcode.prototype.process = function() {
 		}
 	}.bind(this));
 
-	//_log(this.intermediate);
-	$.each(this.intermediate, function(index, line) {
-		console.log(line);
-	});
+	this.intermediateRelative.push({'begin': true, line: 0});
+	var lastParsedLine = {'x': BigNumber(0), 'y': BigNumber(0), 'z': BigNumber(0)};
+	$.each(this.intermediate, function(index, parsedLine) {
+		// Is this a coordinate?
+		if (parsedLine.x !== undefined) {
+			var xRel = parsedLine.x.minus(lastParsedLine.x);
+			var yRel = parsedLine.y.minus(lastParsedLine.y);
+			var zRel = parsedLine.z.minus(lastParsedLine.z);
+			this.intermediateRelative.push({'x': xRel, 'y': yRel, 'z': zRel, 'line': parsedLine.line});
+
+			lastParsedLine = parsedLine;
+		} else {
+			// Otherwise its something else, just push through
+			this.intermediateRelative.push(parsedLine);
+		}
+	}.bind(this));
+
+	// Draw the lines on the gcode scene
+	this.currentPosition = {'x': BigNumber(0), 'y': BigNumber(0), 'z': BigNumber(0)};
+	$.each(this.intermediateRelative, function(index, parsedLineRelative) {
+		if (parsedLineRelative.x === undefined) return;
+
+		var x1 = this.currentPosition.x.toPrecision(15);
+		var y1 = this.currentPosition.y.toPrecision(15);
+		var z1 = this.currentPosition.z.toPrecision(15);
+
+		var x2 = this.currentPosition.x.plus(parsedLineRelative.x).toPrecision(15);
+		var y2 = this.currentPosition.y.plus(parsedLineRelative.y).toPrecision(15);
+		var z2 = this.currentPosition.z.plus(parsedLineRelative.z).toPrecision(15);
+
+		// Draw the line for simulation
+		drawLine([x1, y1, z1], [x2, y2, z2]);
+
+		this.currentPosition = {'x': BigNumber(x2), 'y': BigNumber(y2), 'z': BigNumber(z2)};
+	}.bind(this));
 };

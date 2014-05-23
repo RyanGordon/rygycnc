@@ -91,7 +91,7 @@ textarea#gcodes {
 	display: inline-block;
 }
 
-@media all and (max-width: 760px) {
+@media all and (max-width: 870px) {
 	.speed-display {
 		display: none;
 	}
