@@ -47,13 +47,14 @@ function createScene() {
 
   // create a WebGL renderer, camera and a scene
   renderer = new THREE.WebGLRenderer({ antialias: true });
+  //camera = new THREE.OrthographicCamera(SCENE_WIDTH/-2, SCENE_WIDTH/2, SCENE_HEIGHT/2, SCENE_HEIGHT/-2, NEAR, FAR);
   camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
   scene = new THREE.Scene();
   scene.add(camera);
 
   // start the camera at iso and look at vector 0,0,0
-  camera.position.set(50, 50, 50);
-  camera.up = new THREE.Vector3(0, 0, 1);
+  camera.position.set(0, 0, 100);
+  camera.up.set(0, 0, 1);
   camera.lookAt(new THREE.Vector3(0, 0, 0));
 
   controls = new THREE.OrbitControls(camera, $('#rightbody')[0]);
@@ -106,7 +107,6 @@ function drawLine(point1, point2) {
 
 function render() {
   requestAnimationFrame(render);
-  //console.log(camera.position);
   renderer.render(scene, camera);
 }
 
@@ -205,8 +205,8 @@ THREE.OrbitControls = function ( object, domElement ) {
 
   // How far you can orbit vertically, upper and lower limits.
   // Range is 0 to Math.PI radians.
-  this.minPolarAngle = -Math.PI; // radians
-  this.maxPolarAngle = 2*Math.PI; // radians
+  this.minPolarAngle = 0; // radians
+  this.maxPolarAngle = Math.PI; // radians
 
   // Set to true to disable use of the keys
   this.noKeys = true;
