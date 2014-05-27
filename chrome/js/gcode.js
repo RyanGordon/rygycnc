@@ -18,6 +18,7 @@ function Gcode(lines) {
 }
 
 Gcode.prototype.process = function() {
+	console.log(Date.now());
 	$.each(this.lines, function(lineNumber, fullLine) {
 		value = fullLine.trim().split(' ');
 
@@ -164,6 +165,8 @@ Gcode.prototype.process = function() {
 		}
 	}.bind(this));
 
+	console.log(Date.now());
+
 	this.intermediateRelative.push({'begin': true, line: 0});
 	var lastParsedLine = {'x': BigNumber(0), 'y': BigNumber(0), 'z': BigNumber(0)};
 	$.each(this.intermediate, function(index, parsedLine) {
@@ -180,6 +183,8 @@ Gcode.prototype.process = function() {
 			this.intermediateRelative.push(parsedLine);
 		}
 	}.bind(this));
+
+	console.log(Date.now());
 
 	// Draw the lines on the gcode scene
 	this.currentPosition = {'x': BigNumber(0), 'y': BigNumber(0), 'z': BigNumber(0)};
@@ -199,4 +204,6 @@ Gcode.prototype.process = function() {
 
 		this.currentPosition = {'x': BigNumber(x2), 'y': BigNumber(y2), 'z': BigNumber(z2)};
 	}.bind(this));
+
+	console.log(Date.now());
 };
