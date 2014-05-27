@@ -84,37 +84,24 @@ function renderScene() {
 
   addAxes(10000);
 
-  // create the sphere's material
-  var sphereMaterial = new THREE.MeshLambertMaterial({ color: 0xCC0000 });
-  var radius = 2, segments = 16, rings = 16;
-  var sphere = new THREE.Mesh(new THREE.SphereGeometry(radius, segments, rings), sphereMaterial);
-  scene.add(sphere);
-
   render();
 }
 
 function drawLine(point1, point2, type) {
-  console.log(" 1. "+Date.now());
   if (typeof type !== 'undefined' && type === 'dashed') {
     var lineMaterial = new THREE.LineDashedMaterial({ color: 0xFFFFFF, dashSize: 1, gapSize: 1 });
   } else {
     var lineMaterial = new THREE.LineBasicMaterial({ color: 0xFFFFFF });
   }
 
-  console.log(" 2. "+Date.now());
   var geometry = new THREE.Geometry();
   geometry.vertices.push(new THREE.Vector3(point1[0], point1[1], point1[2]));
   geometry.vertices.push(new THREE.Vector3(point2[0], point2[1], point2[2]));
   geometry.computeLineDistances();
 
-  console.log(" 3. "+Date.now());
   var line = new THREE.Line(geometry, lineMaterial);
 
-  console.log(" 4. "+Date.now());
   scene.add(line);
-  //renderer.render(scene, camera);
-
-  console.log(" 5. "+Date.now());
 }
 
 function render() {
@@ -140,7 +127,7 @@ function buildAxis( src, dst, colorHex, dashed ) {
   var geom = new THREE.Geometry(), mat; 
 
   if (dashed) {
-    mat = new THREE.LineDashedMaterial({ linewidth: 3, color: colorHex, dashSize: 3, gapSize: 3 });
+    mat = new THREE.LineDashedMaterial({ linewidth: 3, color: colorHex, dashSize: 2, gapSize: 2 });
   } else {
     mat = new THREE.LineBasicMaterial({ linewidth: 3, color: colorHex });
   }
@@ -152,6 +139,22 @@ function buildAxis( src, dst, colorHex, dashed ) {
   var axis = new THREE.Line( geom, mat, THREE.LinePieces );
 
   return axis;
+}
+
+function resetScene() {
+  var obj, i;
+  for ( i = scene.children.length - 1; i >= 0 ; i -- ) {
+      obj = scene.children[i];
+      if ( obj !== camera) {
+          scene.remove(obj);
+
+          if (obj.dispose) {
+            obj.dispose();
+          }
+      }
+  }
+
+  renderScene();
 }
 
 /**
