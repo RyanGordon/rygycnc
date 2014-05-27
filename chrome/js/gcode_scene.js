@@ -93,11 +93,17 @@ function renderScene() {
   render();
 }
 
-function drawLine(point1, point2) {
-  var lineMaterial = new THREE.LineBasicMaterial({ color: 0xFFFFFF });
+function drawLine(point1, point2, type) {
+  if (typeof type !== 'undefined' && type === 'dashed') {
+    var lineMaterial = new THREE.LineDashedMaterial({ color: 0xFFFFFF, dashSize: 1, gapSize: 1 });
+  } else {
+    var lineMaterial = new THREE.LineBasicMaterial({ color: 0xFFFFFF });
+  }
+
   var geometry = new THREE.Geometry();
   geometry.vertices.push(new THREE.Vector3(point1[0], point1[1], point1[2]));
   geometry.vertices.push(new THREE.Vector3(point2[0], point2[1], point2[2]));
+  geometry.computeLineDistances();
 
   var line = new THREE.Line(geometry, lineMaterial);
 

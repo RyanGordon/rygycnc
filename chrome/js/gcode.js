@@ -49,7 +49,7 @@ Gcode.prototype.process = function() {
 				case "G00":
 					_log("Rapid Motion");
 					allowedParams = ['X', 'Y', 'Z'];
-					params = {'x': this.currentPosition.x, 'y': this.currentPosition.y, 'z': this.currentPosition.z, 'line': lineNumber};
+					params = {'x': this.currentPosition.x, 'y': this.currentPosition.y, 'z': this.currentPosition.z, 'lineType': 'dashed', 'line': lineNumber};
 					while (i < value.length) {
 						nextCommand = value[i];
 
@@ -73,7 +73,7 @@ Gcode.prototype.process = function() {
 				case "G01":
 					_log("Coordinated Motion");
 					allowedParams = ['X', 'Y', 'Z'];
-					params = {'x': this.currentPosition.x, 'y': this.currentPosition.y, 'z': this.currentPosition.z, 'line': lineNumber};
+					params = {'x': this.currentPosition.x, 'y': this.currentPosition.y, 'z': this.currentPosition.z, 'lineType': 'regular', 'line': lineNumber};
 					while (++i < value.length) {
 						nextCommand = value[i];
 
@@ -172,7 +172,7 @@ Gcode.prototype.process = function() {
 			var xRel = parsedLine.x.minus(lastParsedLine.x);
 			var yRel = parsedLine.y.minus(lastParsedLine.y);
 			var zRel = parsedLine.z.minus(lastParsedLine.z);
-			this.intermediateRelative.push({'x': xRel, 'y': yRel, 'z': zRel, 'line': parsedLine.line});
+			this.intermediateRelative.push({'x': xRel, 'y': yRel, 'z': zRel, 'lineType': parsedLine.lineType, 'line': parsedLine.line});
 
 			lastParsedLine = parsedLine;
 		} else {
@@ -195,7 +195,7 @@ Gcode.prototype.process = function() {
 		var z2 = this.currentPosition.z.plus(parsedLineRelative.z).toPrecision(15);
 
 		// Draw the line for simulation
-		drawLine([x1, y1, z1], [x2, y2, z2]);
+		drawLine([x1, y1, z1], [x2, y2, z2], parsedLineRelative.lineType);
 
 		this.currentPosition = {'x': BigNumber(x2), 'y': BigNumber(y2), 'z': BigNumber(z2)};
 	}.bind(this));
