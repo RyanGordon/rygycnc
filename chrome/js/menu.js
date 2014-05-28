@@ -35,6 +35,14 @@ $(window).load(function() {
 			console.log(fileText);
 		});
 	});
+
+	$("#camera_nav_top_down_view").on('click', function() {
+		gcodeScene.setTopDownView();
+	});
+
+	$("#camera_nav_isometric_view").on('click', function() {
+		gcodeScene.setIsometricView();
+	});
 });
 
 // Read file

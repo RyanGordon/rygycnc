@@ -15,11 +15,16 @@ function Gcode(lines) {
 	this.spindleSpeed = null; // RPM
 	this.spindleDirection = 'CW';
 	this.spindleOn = false;
+	this.bounds = {'minX': BigNumber(0), 'maxX': BigNumber(0), 'minY': BigNumber(0), 'maxY': BigNumber(0), 'minZ': BigNumber(0), 'maxZ': BigNumber(0)};
+	this.midpoint = {'x': BigNumber(0), 'y': BigNumber(0), 'z': BigNumber(0)};
+	this.objectLength = BigNumber(0);
+	this.objectWidth = BigNumber(0);
+	this.objectHeight = BigNumber(0);
 }
 
 Gcode.prototype.process = function() {
-	resetScene();
-	
+	gcodeScene.reset();
+
 	$.each(this.lines, function(lineNumber, fullLine) {
 		value = fullLine.trim().split(' ');
 
@@ -69,6 +74,30 @@ Gcode.prototype.process = function() {
 					this.currentPosition.y = BigNumber(params.y);
 					this.currentPosition.z = BigNumber(params.z);
 
+					if (this.currentPosition.x.lessThan(this.bounds.minX)) {
+						this.bounds.minX = this.currentPosition.x;
+					}
+
+					if (this.currentPosition.y.lessThan(this.bounds.minY)) {
+						this.bounds.minY = this.currentPosition.y;
+					}
+
+					if (this.currentPosition.z.lessThan(this.bounds.minZ)) {
+						this.bounds.minZ = this.currentPosition.z;
+					}
+
+					if (this.currentPosition.x.greaterThan(this.bounds.maxX)) {
+						this.bounds.maxX = this.currentPosition.x;
+					}
+
+					if (this.currentPosition.y.greaterThan(this.bounds.maxY)) {
+						this.bounds.maxY = this.currentPosition.y;
+					}
+
+					if (this.currentPosition.z.greaterThan(this.bounds.maxZ)) {
+						this.bounds.maxZ = this.currentPosition.z;
+					}
+
 					this.intermediate.push(params);
 					break;
 				case "G1":
@@ -91,6 +120,30 @@ Gcode.prototype.process = function() {
 					this.currentPosition.x = BigNumber(params.x);
 					this.currentPosition.y = BigNumber(params.y);
 					this.currentPosition.z = BigNumber(params.z);
+
+					if (this.currentPosition.x.lessThan(this.bounds.minX)) {
+						this.bounds.minX = this.currentPosition.x;
+					}
+
+					if (this.currentPosition.y.lessThan(this.bounds.minY)) {
+						this.bounds.minY = this.currentPosition.y;
+					}
+
+					if (this.currentPosition.z.lessThan(this.bounds.minZ)) {
+						this.bounds.minZ = this.currentPosition.z;
+					}
+
+					if (this.currentPosition.x.greaterThan(this.bounds.maxX)) {
+						this.bounds.maxX = this.currentPosition.x;
+					}
+
+					if (this.currentPosition.y.greaterThan(this.bounds.maxY)) {
+						this.bounds.maxY = this.currentPosition.y;
+					}
+
+					if (this.currentPosition.z.greaterThan(this.bounds.maxZ)) {
+						this.bounds.maxZ = this.currentPosition.z;
+					}
 
 					this.intermediate.push(params);
 					break;
@@ -166,6 +219,8 @@ Gcode.prototype.process = function() {
 		}
 	}.bind(this));
 
+	gcodeScene.setObjectProperties(this.bounds);
+
 	this.intermediateRelative.push({'begin': true, line: 0});
 	var lastParsedLine = {'x': BigNumber(0), 'y': BigNumber(0), 'z': BigNumber(0)};
 	$.each(this.intermediate, function(index, parsedLine) {
@@ -197,8 +252,10 @@ Gcode.prototype.process = function() {
 		var z2 = this.currentPosition.z.plus(parsedLineRelative.z).toPrecision(15);
 
 		// Draw the line for simulation
-		drawLine([x1, y1, z1], [x2, y2, z2], parsedLineRelative.lineType);
+		gcodeScene.drawLine([x1, y1, z1], [x2, y2, z2], parsedLineRelative.lineType);
 
 		this.currentPosition = {'x': BigNumber(x2), 'y': BigNumber(y2), 'z': BigNumber(z2)};
 	}.bind(this));
+
+	gcodeScene.refreshScene();
 };

@@ -1,93 +1,137 @@
+var gcodeScene = new GCodeScene();
 $(document).on('ready', function() {
-  $('#rightbody').append(createScene());
-  renderScene();
+  $('#rightbody').append(gcodeScene.createScene());
+  gcodeScene.renderScene();
 });
 
-var scene, renderer, camera, controls;
+function GCodeScene() {
+  this.scene = null;
+  this.renderer = null;
+  this.camera = null;
+  this.controls = null;
 
-var SCENE_WIDTH = 600;
-var SCENE_HEIGHT = 400;
+  this.sceneWidth = 600;
+  this.sceneHeight = 400;
 
-var setSceneSize = (function() {
-  var newwidth = Math.round($(window).width()*0.65);
-  var heightratio;
-  if ($(window).height() <= 450) {
-    heightratio = 0.65;
-  } else if ($(window).height() <= 500) {
-    heightratio = 0.675;
-  } else if ($(window).height() <= 550) {
-    heightratio = 0.68;
-  } else if ($(window).height() > 810) {
-    heightratio = 0.73;
-  } else if ($(window).height() > 700) {
-    heightratio = 0.72;
-  } else if ($(window).height() > 650) {
-    heightratio = 0.71;
-  } else if ($(window).height() > 600) {
-    heightratio = 0.695;
-  } else {
-    heightratio = 0.70;
-  }
-  var newheight = Math.round($(window).height()*heightratio);
+  this.objectBounds = {'minX': BigNumber(0), 'maxX': BigNumber(0), 'minY': BigNumber(0), 'maxY': BigNumber(0), 'minZ': BigNumber(0), 'maxZ': BigNumber(0)};
+  this.objectLength = BigNumber(0);
+  this.objectWidth = BigNumber(0);
+  this.objectHeight = BigNumber(0);
 
-  if (newheight !== SCENE_HEIGHT || newwidth !== SCENE_WIDTH) {
-    SCENE_HEIGHT = newheight;
-    SCENE_WIDTH = newwidth;
-    renderer.setSize(SCENE_WIDTH, SCENE_HEIGHT);
-    camera.aspect = SCENE_WIDTH / SCENE_HEIGHT;
-    camera.updateProjectionMatrix();
-    console.log($(window).width(), newwidth, $(window).height(), heightratio, newheight);
-  }
-});
-
-function createScene() {
-
-  // set some camera attributes
-  var VIEW_ANGLE = 45, ASPECT = SCENE_WIDTH / SCENE_HEIGHT, NEAR = 0.1, FAR = 10000;
-
-  // create a WebGL renderer, camera and a scene
-  renderer = new THREE.WebGLRenderer({ antialias: true });
-  //camera = new THREE.OrthographicCamera(SCENE_WIDTH/-2, SCENE_WIDTH/2, SCENE_HEIGHT/2, SCENE_HEIGHT/-2, NEAR, FAR);
-  camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
-  scene = new THREE.Scene();
-  scene.add(camera);
-
-  // start the camera at iso and look at vector 0,0,0
-  camera.position.set(0, 0, 100);
-  camera.up.set(0, 0, 1);
-  camera.lookAt(new THREE.Vector3(0, 0, 0));
-
-  controls = new THREE.OrbitControls(camera, $('#rightbody')[0]);
-
-  // start the renderer
-  setSceneSize();
-
-  // attach the render-supplied DOM element
-  return renderer.domElement;
+  this.objectMidpoint = {'x': BigNumber(0), 'y': BigNumber(0), 'z': BigNumber(0)};
 }
 
-function renderScene() {
+GCodeScene.prototype.setSceneSize = function() {
+  var newWidth = Math.round($(window).width()*0.65);
+  var heightRatio;
+  if ($(window).height() <= 450) {
+    heightRatio = 0.65;
+  } else if ($(window).height() <= 500) {
+    heightRatio = 0.675;
+  } else if ($(window).height() <= 550) {
+    heightRatio = 0.68;
+  } else if ($(window).height() > 810) {
+    heightRatio = 0.73;
+  } else if ($(window).height() > 700) {
+    heightRatio = 0.72;
+  } else if ($(window).height() > 650) {
+    heightRatio = 0.71;
+  } else if ($(window).height() > 600) {
+    heightRatio = 0.695;
+  } else {
+    heightRatio = 0.70;
+  }
+  var newHeight = Math.round($(window).height()*heightRatio);
 
-  $(window).resize(setSceneSize);
+  if (newHeight !== this.sceneHeight || newWidth !== this.sceneWidth) {
+    this.sceneHeight = newHeight;
+    this.sceneWidth = newWidth;
+    this.renderer.setSize(this.sceneWidth, this.sceneHeight);
+    this.camera.aspect = this.sceneWidth / this.sceneHeight;
+    this.camera.updateProjectionMatrix();
+    console.log($(window).width(), newWidth, $(window).height(), heightRatio, newHeight);
+  }
+};
+
+GCodeScene.prototype.setObjectProperties = function(bounds) {
+  this.objectBounds = bounds;
+
+  this.objectLength = bounds.maxX.minus(bounds.minX);
+  this.objectWidth = bounds.maxY.minus(bounds.minY);
+  this.objectHeight = bounds.maxZ.minus(bounds.minZ);
+
+  this.objectMidpoint.x = this.objectLength.dividedBy(2);
+  this.objectMidpoint.y = this.objectWidth.dividedBy(2);
+  this.objectMidpoint.z = this.objectHeight.dividedBy(2);
+};
+
+GCodeScene.prototype.createScene = function() {
+  var VIEW_ANGLE = 45, ASPECT = this.sceneWidth / this.sceneHeight, NEAR = 0.1, FAR = 20000;
+
+  // create a WebGL renderer, camera and a scene
+  this.renderer = new THREE.WebGLRenderer({ antialias: true });
+  //camera = new THREE.OrthographicCamera(SCENE_WIDTH/-2, SCENE_WIDTH/2, SCENE_HEIGHT/2, SCENE_HEIGHT/-2, NEAR, FAR);
+  this.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
+  this.scene = new THREE.Scene();
+  this.scene.add(this.camera);
+  
+  // Set Z axis to be up
+  this.camera.up.set(0, 0, 1);
+
+  // start the camera with orbital controls
+  this.controls = new THREE.OrbitControls(this.camera, $('#rightbody')[0]);
+
+  // Initially look top down with the x and y axis in the corner
+  this.setTopDownView();
+
+  // start the renderer
+  this.setSceneSize();
+
+  // attach the render-supplied DOM element
+  return this.renderer.domElement;
+};
+
+GCodeScene.prototype.refreshScene = function() {
+  this.setTopDownView();
+  this.render();
+}
+
+GCodeScene.prototype.setTopDownView = function() {
+  var position = {'x': this.objectMidpoint.x.toNumber(), 'y': this.objectMidpoint.y.toNumber(), 'z': 0.0};
+  this.controls.target = new THREE.Vector3(position.x, position.y, position.z);
+  this.controls.object.position.set(position.x, position.y, 100.0);
+  this.controls.update();
+};
+
+GCodeScene.prototype.setIsometricView = function() {
+  var position = {'x': this.objectMidpoint.x.toNumber(), 'y': this.objectMidpoint.y.toNumber(), 'z': 0.0};
+  this.controls.target = new THREE.Vector3(position.x, position.y, position.z);
+  this.controls.object.position.set(position.x+100.0, position.y-100.0, position.z+100.0);
+  this.controls.update();
+};
+
+GCodeScene.prototype.renderScene = function() {
+
+  $(window).resize(this.setSceneSize);
 
   // lights
   light = new THREE.DirectionalLight(0xffffff);
   light.position.set(1, 1, 1);
-  scene.add(light);
+  this.scene.add(light);
 
   light = new THREE.DirectionalLight(0x002288);
   light.position.set(-1, -1, -1);
-  scene.add(light);
+  this.scene.add(light);
 
   light = new THREE.AmbientLight(0x222222);
-  scene.add(light);
+  this.scene.add(light);
 
-  addAxes(10000);
+  this.addAxes(10000);
 
-  render();
-}
+  this.render();
+};
 
-function drawLine(point1, point2, type) {
+GCodeScene.prototype.drawLine = function(point1, point2, type) {
   if (typeof type !== 'undefined' && type === 'dashed') {
     var lineMaterial = new THREE.LineDashedMaterial({ color: 0xFFFFFF, dashSize: 1, gapSize: 1 });
   } else {
@@ -101,61 +145,58 @@ function drawLine(point1, point2, type) {
 
   var line = new THREE.Line(geometry, lineMaterial);
 
-  scene.add(line);
-}
+  this.scene.add(line);
+};
 
-function render() {
-  requestAnimationFrame(render);
-  renderer.render(scene, camera);
-}
+GCodeScene.prototype.render = function() {
+  requestAnimationFrame(function() { this.render(); }.bind(this));
+  this.renderer.render(this.scene, this.camera);
+};
 
-function addAxes(length) {
+GCodeScene.prototype.addAxes = function(length) {
   var axes = new THREE.Object3D();
 
-  axes.add(buildAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(length, 0, 0), 0xFF0000, false)); // +X
-  axes.add(buildAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(-length, 0, 0), 0xFF0000, true)); // -X
-  axes.add(buildAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, length, 0), 0x00FF00, false)); // +Y
-  axes.add(buildAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, -length, 0), 0x00FF00, true)); // -Y
-  axes.add(buildAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, length), 0x0000FF, false)); // +Z
-  axes.add(buildAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -length), 0x0000FF, true)); // -Z
+  axes.add(this.buildAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(length, 0, 0), 0xFF0000, false)); // +X
+  axes.add(this.buildAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(-length, 0, 0), 0xFF0000, true)); // -X
+  axes.add(this.buildAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, length, 0), 0x00FF00, false)); // +Y
+  axes.add(this.buildAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, -length, 0), 0x00FF00, true)); // -Y
+  axes.add(this.buildAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, length), 0x0000FF, false)); // +Z
+  axes.add(this.buildAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -length), 0x0000FF, true)); // -Z
 
-  scene.add(axes);
+  this.scene.add(axes);
+};
 
-}
-
-function buildAxis( src, dst, colorHex, dashed ) {
-  var geom = new THREE.Geometry(), mat; 
+GCodeScene.prototype.buildAxis = function(src, dst, colorHex, dashed) {
+  var geometry = new THREE.Geometry(), material; 
 
   if (dashed) {
-    mat = new THREE.LineDashedMaterial({ linewidth: 3, color: colorHex, dashSize: 2, gapSize: 2 });
+    material = new THREE.LineDashedMaterial({ linewidth: 3, color: colorHex, dashSize: 2, gapSize: 2 });
   } else {
-    mat = new THREE.LineBasicMaterial({ linewidth: 3, color: colorHex });
+    material = new THREE.LineBasicMaterial({ linewidth: 3, color: colorHex });
   }
 
-  geom.vertices.push(src.clone());
-  geom.vertices.push(dst.clone());
-  geom.computeLineDistances(); // This one is SUPER important, otherwise dashed lines will appear as simple plain lines
+  geometry.vertices.push(src.clone());
+  geometry.vertices.push(dst.clone());
+  geometry.computeLineDistances(); // This one is SUPER important, otherwise dashed lines will appear as simple plain lines
 
-  var axis = new THREE.Line( geom, mat, THREE.LinePieces );
+  var axis = new THREE.Line(geometry, material, THREE.LinePieces);
 
   return axis;
-}
+};
 
-function resetScene() {
+GCodeScene.prototype.reset = function() {
   var obj, i;
-  for ( i = scene.children.length - 1; i >= 0 ; i -- ) {
-      obj = scene.children[i];
-      if ( obj !== camera) {
-          scene.remove(obj);
+  for (i = this.scene.children.length - 1; i >= 0 ; i --) {
+      obj = this.scene.children[i];
+      if (obj !== this.camera) {
+          this.scene.remove(obj);
 
-          if (obj.dispose) {
-            obj.dispose();
-          }
+          if (obj.dispose) obj.dispose();
       }
   }
 
-  renderScene();
-}
+  this.renderScene();
+};
 
 /**
  * @author qiao / https://github.com/qiao
