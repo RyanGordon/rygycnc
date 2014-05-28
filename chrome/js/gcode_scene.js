@@ -60,9 +60,9 @@ GCodeScene.prototype.setObjectProperties = function(bounds) {
   this.objectWidth = bounds.maxY.minus(bounds.minY);
   this.objectHeight = bounds.maxZ.minus(bounds.minZ);
 
-  this.objectMidpoint.x = this.objectLength.dividedBy(2);
-  this.objectMidpoint.y = this.objectWidth.dividedBy(2);
-  this.objectMidpoint.z = this.objectHeight.dividedBy(2);
+  this.objectMidpoint.x = bounds.minX.plus(this.objectLength.dividedBy(2));
+  this.objectMidpoint.y = bounds.minY.plus(this.objectWidth.dividedBy(2));
+  this.objectMidpoint.z = bounds.minZ.plus(this.objectHeight.dividedBy(2));
 };
 
 GCodeScene.prototype.createScene = function() {
@@ -97,18 +97,43 @@ GCodeScene.prototype.refreshScene = function() {
 }
 
 GCodeScene.prototype.setTopDownView = function() {
+  var cameraZ = this.calculateCameraZAutoZoom().times(1.7); // Bias multiplier because for some reason three.js doesn't follow the rules of geometry...
   var position = {'x': this.objectMidpoint.x.toNumber(), 'y': this.objectMidpoint.y.toNumber(), 'z': 0.0};
   this.controls.target = new THREE.Vector3(position.x, position.y, position.z);
-  this.controls.object.position.set(position.x, position.y, 100.0);
+  this.controls.object.position.set(position.x, position.y, cameraZ.plus(position.z).toNumber());
   this.controls.update();
 };
 
 GCodeScene.prototype.setIsometricView = function() {
-  var position = {'x': this.objectMidpoint.x.toNumber(), 'y': this.objectMidpoint.y.toNumber(), 'z': 0.0};
-  this.controls.target = new THREE.Vector3(position.x, position.y, position.z);
-  this.controls.object.position.set(position.x+100.0, position.y-100.0, position.z+100.0);
+  var position = {'x': this.objectMidpoint.x, 'y': this.objectMidpoint.y, 'z': BigNumber(0.0)};
+  var cameraZ = this.calculateCameraZAutoZoom();
+  this.controls.target = new THREE.Vector3(position.x.toNumber(), position.y.toNumber(), position.z.toNumber());
+  this.controls.object.position.set(cameraZ.plus(position.x).toNumber(), cameraZ.plus(position.y).times(-1).toNumber(), cameraZ.plus(position.z).toNumber());
   this.controls.update();
 };
+
+GCodeScene.prototype.calculateCameraZAutoZoom = function() {
+  /* z axis we use for the camera is based on the fact that our field of view is 45 degrees on either side (set in createScene)
+   * So our view port is a simple 45-45-90 triangle and opposite = adjacent*tan(45 deg),
+   * where opposite is the z length and adjacent is 1/2 of the length of the object
+   * tan(45 deg) is just 1 so opposite = adjacent or z = 1/2*(length of object)
+   * But we also need to consider the width of the object in the view port
+   * Whichever one maximizes, is the one we need to use to fit the object into the view port
+   */
+  var cameraZ;
+  var cameraZLength = this.objectLength.dividedBy(2);
+  var cameraZWidth = this.objectWidth.dividedBy(2);
+  if (cameraZLength.greaterThan(cameraZWidth)) {
+    cameraZ = cameraZLength;
+  } else {
+    cameraZ = cameraZWidth;
+  }
+  if (cameraZ.equals(0)) {
+    cameraZ = BigNumber(100);
+  }
+
+  return cameraZ;
+}
 
 GCodeScene.prototype.renderScene = function() {
 
