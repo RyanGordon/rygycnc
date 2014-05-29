@@ -137,7 +137,7 @@ GCodeScene.prototype.calculateCameraZAutoZoom = function() {
 
 GCodeScene.prototype.renderScene = function() {
 
-  $(window).resize(this.setSceneSize);
+  $(window).resize(this.setSceneSize.bind(this));
 
   // lights
   light = new THREE.DirectionalLight(0xffffff);
