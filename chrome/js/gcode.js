@@ -5,7 +5,8 @@ function Gcode(lines) {
 	this.measurementMode = 'inches';
 	this.distanceMode = 'absolute';
 	this.currentPosition = {'x': BigNumber(0), 'y': BigNumber(0), 'z': BigNumber(0)};
-	this.coordinateSytem = 'xyz';
+	this.coordinateSystem = 'xyz';
+	this.plane = 'xy';
 	this.feedRate = null;
 	this.intermediate = [];
 	this.intermediateRelative = [];
@@ -80,6 +81,48 @@ Gcode.prototype.processCommand = function(fullLine, lineNumber) {
 	for (var i=0; i < value.length; i++) {
 		command = value[i];
 		switch (command) {
+			case "G81":
+				// Drilling cycle
+				break;
+			case "G98":
+				// Retract cycle
+				break;
+			case "G3":
+			case "G03":
+				// Complicated ARC command
+				break;
+			case "G17":
+				_log(command+": Setting plane to be XY");
+				this.plane = 'XY';
+				break;
+			case "G18":
+				_log(command+": Setting plane to be ZX");
+				this.plane = 'ZX';
+				break;
+			case "G19":
+				_log(command+": Setting plane to be YZ");
+				this.plane = 'YZ';
+				break;
+			case "G20":
+				_log(command+": Setting plane to be UV");
+				this.plane = 'UV';
+				break;
+			case "G21":
+				_log(command+": Setting plane to be WU");
+				this.plane = 'WU';
+				break;
+			case "G22":
+				_log(command+": Setting plane to be VW");
+				this.plane = 'VW';
+				break;
+			case "G43":
+				_log(command+": Enabling tool length compensation");
+				allowedParams = ['H'];
+
+				if ($.inArray(value[i].charAt(0), allowedParams) !== -1) {
+					// Change tool to this value & enable tool compensation
+				}
+				break;
 			case "G20":
 				_log(command+": Measurement Mode: Inches");
 				this.measurementMode = 'inches';
@@ -251,6 +294,8 @@ Gcode.prototype.processCommand = function(fullLine, lineNumber) {
 						}
 					}
 					_log("Comment: "+fullLine);
+				} else if(command.indexOf('N') === 0) {
+					_log(command+": Ignoring setting specific line of gcode");
 				} else if(command.indexOf('F') === 0) {
 					_log(command+": Changing feed rate speed");
 					this.feedRate = command.substr(1);

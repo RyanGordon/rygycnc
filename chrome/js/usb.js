@@ -10,24 +10,28 @@ chrome.runtime.onSuspend.addListener(disconnectDevice);
 
 $(window).load(function() {
 	$('#connectionIndicator').on('click', connectOrDisconnectDevice);
-	$('#send_test_data').on('click', sendTestDataToDevice);
+	$('#send_test_data').on('click', function() { sendTestDataToDevice([0x81, 0x81, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02]) });
 	$('#receive_data').on('click', receiveAndPrintData);
+	$('#debug_1').on('click', function() { sendTestDataToDevice([0x81, 0x81, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02]) });
+	$('#debug_2').on('click', function() { sendTestDataToDevice([0x81, 0x81, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02]) });
+	$('#debug_3').on('click', function() { sendTestDataToDevice([0x81, 0x81, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02]) });
+	$('#debug_4').on('click', function() { sendTestDataToDevice([0x81, 0x81, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02]) });
+	$('#debug_5').on('click', function() { sendTestDataToDevice([0x81, 0x81, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02]) });
 });
 
-var sendTestDataToDevice = (function() {
+function sendTestDataToDevice(data) {
 	if (HIDReady !== true) {
 		_log("Device not connected. Please connect first.");
 		return 0;
 	}
 
 	_log("Sending packet to device.");
-	var data = [0x81, 0x81, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02];
 	sendData(data, function() {
 		_log("Packet has been sent.");
 	});
 
 	receiveAndPrintData();
-});
+}
 
 function sendData(data, callback) {
 	var dataBuffer = new ArrayBuffer(PACKET_SIZE);
