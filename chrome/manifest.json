@@ -1,11 +1,11 @@
 {
 	"manifest_version": 2,
-	"minimum_chrome_version": "26",
+	"minimum_chrome_version": "33",
 	"name": "RYGY CNC",
 	"description": "Interface for the RYGY CNC Controller",
 	"version": "0.1",
 	"permissions": [
-		"hid",
+		"serial",
 		"storage",
 		{
 			"fileSystem": [
@@ -15,12 +15,6 @@
 			]
 		}
 	],
-	"optional_permissions": [{
-		"usbDevices": [{
-			"vendorId": 1003,
-			"productId": 8527
-		}]
-	}],
 	"app": {
 		"background": {
 			"scripts": ["background.js"]

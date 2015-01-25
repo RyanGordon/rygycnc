@@ -1,91 +1,47 @@
-var VENDOR_ID = 0x03EB; // integer = 1003
-var PRODUCT_ID = 0x214F; // integer = 8527
+var typeOfDevice = '/dev/tty.usbmodem1421';
+var connectionInfo = null;
+var serialReady = false;
+var stringReceived = '';
 
-var HIDConnectionId = null;
-var HIDReady = false;
-
-var PACKET_SIZE = 64;
-
-chrome.runtime.onSuspend.addListener(disconnectDevice);
+var lineReceivedCallbacks = {};
 
 $(window).load(function() {
 	$('#connectionIndicator').on('click', connectOrDisconnectDevice);
-	$('#send_test_data').on('click', function() { sendTestDataToDevice([0x81, 0x81, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02]) });
-	$('#receive_data').on('click', receiveAndPrintData);
-	$('#debug_1').on('click', function() { sendTestDataToDevice([0x81, 0x81, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02]) });
-	$('#debug_2').on('click', function() { sendTestDataToDevice([0x81, 0x81, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02]) });
-	$('#debug_3').on('click', function() { sendTestDataToDevice([0x81, 0x81, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02]) });
-	$('#debug_4').on('click', function() { sendTestDataToDevice([0x81, 0x81, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02]) });
-	$('#debug_5').on('click', function() { sendTestDataToDevice([0x81, 0x81, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02]) });
 });
 
-function sendTestDataToDevice(data) {
-	if (HIDReady !== true) {
-		_log("Device not connected. Please connect first.");
-		return 0;
-	}
-
-	_log("Sending packet to device.");
-	sendData(data, function() {
-		_log("Packet has been sent.");
-	});
-
-	receiveAndPrintData();
-}
-
-function sendData(data, callback) {
-	var dataBuffer = new ArrayBuffer(PACKET_SIZE);
-	var dataArray = new Uint8Array(dataBuffer);
-	var dataLength = data.length;
-	for (var i=0; i< dataLength; i++) {
-		dataArray[i] = data[i];
-	}
-	_log(data);
-	_log(dataArray);
-	_log(readFromArrayBuffer(dataBuffer));
-
-	chrome.hid.send(HIDConnectionId, 0, dataBuffer, callback);
-}
-
-function readFromArrayBuffer(arrayBuffer) {
-	return new Uint8Array(arrayBuffer);
-}
-
-var receiveAndPrintData = (function() {
-	receiveData(function(data) {
-		_log(data);
+var onLineReceived = (function(str) {
+	_log("Line Received: "+str);
+	Object.keys(lineReceivedCallbacks).forEach(function (key) {
+		var callback = lineReceivedCallbacks[key];
+		callback(str);
 	});
 });
 
-function receiveData(dataCallback) {
-	if (HIDReady !== true) {
-		_log("Device not connected. Please connect first.");
-		return 0;
+var receiveData = (function(info) {
+	if (info.connectionId != connectionInfo.connectionId || !info.data) return;
+
+	var str = convertArrayBufferToString(info.data);
+	if (str.charAt(str.length-1) === '\n') {
+		stringReceived += str.substring(0, str.length-1);
+		onLineReceived(stringReceived);
+		stringReceived = '';
+	} else {
+		stringReceived += str;
 	}
+});
 
-	_log("Receiving data...");
-	chrome.hid.receive(HIDConnectionId, PACKET_SIZE, function(dataBuffer) {
-		_log("Data received.");
-		dataCallback(new Uint8Array(dataBuffer));
+function writeSerial(str, callback) {
+	if (serialReady === false) return;
+	_log("Writing to Serial: "+str);
+	str += "\n";
+	chrome.serial.send(connectionInfo.connectionId, convertStringToArrayBuffer(str), function(sendInfo) {
+		_log(sendInfo);
+		if (callback !== undefined) callback(sendInfo);
 	});
-}
-
-function findHIDDevice() {
-	chrome.hid.getDevices({"vendorId": VENDOR_ID, "productId": PRODUCT_ID}, function(devices) {
-		_log(devices);
-		if (devices.size === 0) {
-			noDevicesFound();
-		} else {
-			connectToHIDDevice(devices[0].deviceId);
-		}
-	});
-
-	// This might cause possible contention with the above function?
-	setTimeout(noDevicesFound, 500);
 }
 
 var noDevicesFound = (function() {
-	if (HIDReady !== false) {
+	if (connectionInfo !== null) {
 		return;
 	}
 	_log("No connected RYGY CNC devices were found");
@@ -95,64 +51,96 @@ var noDevicesFound = (function() {
 	updateStatus('No devices found');
 });
 
-function connectToHIDDevice(deviceId) {
-	chrome.hid.connect(deviceId, function(connection) {
-		HIDConnectionId = connection.connectionId;
-		HIDReady = true;
-		_log("Device connected with connection id "+HIDConnectionId);
-		$('#connectionIndicator').attr('class', 'activity connected');
-		updateStatus('Connected');
+function connectToSerialDevice(devicePath, callback) {
+	lineReceivedCallbacks['initialization'] = function(str) {
+		if (str.indexOf('Grbl') > -1 && str.indexOf('[\'$\' for help]') > -1) {
+			delete lineReceivedCallbacks['initialization'];
+			serialReady = true;
+			$('#connectionIndicator').attr('class', 'activity connected');
+			updateStatus('Connected');
+			if (callback !== undefined) callback();
+		}
+	};
+
+	_log("Connecting with device path: "+devicePath);
+	chrome.serial.connect(devicePath, {bitrate: 115200}, function(_connectionInfo) {
+		connectionInfo = _connectionInfo;
+		_log("Device connected with device id: "+connectionInfo.connectionId);
 	});
 }
 
 var connectOrDisconnectDevice = (function() {
-	 if (HIDConnectionId !== null) {
+	 if (connectionInfo !== null) {
 	 	disconnectDevice();
 	 } else {
 	 	connectDevice();
 	 }
 });
 
-var connectDevice = (function() {
+var connectDevice = (function(callback) {
 	$('#connectionIndicator').attr('class', 'activity connecting');
 	updateStatus('Connecting');
-	chrome.permissions.request({
-		'permissions': [{
-			'usbDevices': [{
-				'vendorId': VENDOR_ID,
-				'productId': PRODUCT_ID
-			}]
-		}]
-	}, permissionsCallback);
-});
 
-var permissionsCallback = (function(result) {
-	if (result) {
-		_log('App was granted the "usbDevices" permission.');
-		findHIDDevice();
-	} else {
-		$('#connectionIndicator').attr('class', 'activity disconnected');
-		_log('App was NOT granted the "usbDevices" permission.');
-	}
+	chrome.serial.getDevices(function(ports) {
+		_log(ports);
+		if (ports.size === 0) {
+			noDevicesFound();
+		} else {
+			for (var i=0; i < ports.length; i++) {
+				if (ports[i].path.indexOf(typeOfDevice) > -1) {
+					connectToSerialDevice(ports[i].path, callback);
+					break;
+				}
+			}
+		}
+	});
+
+	// This might cause possible contention with the above function
+	setTimeout(noDevicesFound, 500);
 });
 
 var disconnectDevice = (function() {
 	$('#connectionIndicator').attr('class', 'activity disconnecting');
 	updateStatus('Disconnecting');
-	if (HIDConnectionId !== null) {
-		chrome.hid.disconnect(HIDConnectionId, disconnectedCallback);
+	$('#powerButton').prop('checked', false);
+	$("#powerButton").switchButton("redraw");
+
+	if (connectionInfo !== null) {
+		chrome.serial.disconnect(connectionInfo.connectionId, disconnectedCallback);
 	} else {
-		disconnectedCallback();
+		disconnectedCallback(true);
 	}
 });
 
-var disconnectedCallback = (function() {
-	_log("Device with connection id "+HIDConnectionId+" is disconnected.");
-	HIDConnectionId = null;
-	HIDReady = false;
+var disconnectedCallback = (function(result) {
+	if (result) {
+		_log("Device with connection id "+connectionInfo.connectionId+" is disconnected.");
+		connectionInfo = null;
+		serialReady = false;
 
-	$('#connectionIndicator').attr('class', 'activity disconnected');
-	$('#powerButton').prop('checked', false);
-	$("#powerButton").switchButton("redraw");
-	updateStatus('Disconnected');
+		$('#connectionIndicator').attr('class', 'activity disconnected');
+		$('#powerButton').prop('checked', false);
+		$("#powerButton").switchButton("redraw");
+		updateStatus('Disconnected');
+	} else {
+		_log("Device with connection id "+connectionInfo.connectionId+" failed to disconnect.");
+		$('#connectionIndicator').attr('class', 'activity connected');
+		updateStatus('Connected');
+	}
 });
+
+// Convert string to ArrayBuffer
+var convertStringToArrayBuffer = function(str) {
+  var buf = new ArrayBuffer(str.length);
+  var bufView = new Uint8Array(buf);
+  for (var i=0; i < str.length; i++) {
+    bufView[i] = str.charCodeAt(i);
+  }
+  return buf;
+}
+
+var convertArrayBufferToString = function(buf) {
+	return String.fromCharCode.apply(null, new Uint8Array(buf));
+}
+
+chrome.serial.onReceive.addListener(receiveData);

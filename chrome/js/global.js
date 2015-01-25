@@ -34,16 +34,18 @@ function updateStatus(status) {
 
 function enablePower() {
   console.log("Enabling power");
-  if (HIDReady === false) {
-    connectDevice();
+  if (connectionInfo === null) {
+    connectDevice(function() {
+      writeSerial("M64 P0");
+    });
+  } else {
+    writeSerial("M64 P0");
   }
 }
 
 function disablePower() {
-  if (HIDReady === false) {
-    return;
-  }
   console.log("Disabling power");
+  writeSerial("M65 P0");
 }
 
 function setupGcodeTextArea() {
